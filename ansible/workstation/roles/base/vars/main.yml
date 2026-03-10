@@ -7,48 +7,28 @@ directories:
   - ~/.ssh
   - ~/.local/bin
   - ~/.kube
-  - ~/.config/direnv
   - ~/.vscode
-  - ~/projects/xandors
+  - ~/projects
 
 files:
   - ~/.bashrc
   - ~/.bash_profile
-  - ~/.bash_swile
   - ~/.vimrc
 
 scripts:
   root:
     - bash_profile
     - bash_aliases
-    - bash_swile
-    - vimrc
-  specific:
-    - dir: .tfenv
-      file: use-gpgv
-    - dir: .ssh
-      file: config
-    - dir: .config/direnv
-      file: direnvrc
-    - dir: .vscode
-      file: settings.json
-    - dir: projects
-      file: .envrc
-    - dir: projects
-      file: .python-version
+  specific: []
+    # - dir: .vscode
+    #   file: settings.json
 
 bashrc_includes:
   - "[ -f ~/.bash_aliases ] && . ~/.bash_aliases"
   - "[ -f ~/.bash_profile ] && . ~/.bash_profile"
-  - "[ -f ~/.bash_swile ]   && . ~/.bash_swile"
 
-git_repos:
-  # Environment
-  # - name: .local/share/tfenv
-  #   repo: https://github.com/tfutils/tfenv.git
-  # - name: .local/share/tgenv
-  #   repo: https://github.com/cunymatthieu/tgenv.git
-  - name: projects/xandors/iac
-    repo: git@github.com:xandors/iac.git
+git_repos: []
+  # - name: projects/xandors/iac
+  #   repo: git@github.com:xandors/iac.git
 
 repos: []

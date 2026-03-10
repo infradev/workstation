@@ -6,46 +6,34 @@ bashrc_includes:
   - "[ -f ~/.bash_profile ] && . ~/.bash_profile"
 
 packages:
-  - apt-file
   - apt-transport-https
-  - aria2
   - bash-completion
-  - bat
   - build-essential
-  - byobu
   - ca-certificates
   - certbot
-  - code
-  - containerd.io
   - curl
-  - direnv
-  - docker-ce
-  - docker-ce-cli
-  - docker-compose-plugin
-  - flatpak
+  - google-cloud-cli
+  - google-cloud-cli-gke-gcloud-auth-plugin
   - gdebi
   - git
-  - gnome-software-plugin-flatpak
+  - gnupg
   - gnupg-agent
-  - gnupg2
   - golang
-  - gparted
   - graphviz
   - helm
   - htop
   - httpie
   - jq
   - kubectl
-  - libaugeas0
   - llvm
   - make
-  - nfs-common
-  - nfs-kernel-server
+  - mysql-client
   - nmap
   - npm
   - openssh-server
   - p7zip-full
-  - pipenv
+  - postgresql-client
+  - pv
   - python3
   - python3-certbot-apache
   - python3-certbot-nginx
@@ -53,10 +41,8 @@ packages:
   - python3-venv
   - software-properties-common
   - telnet
-  - tmux
   - traceroute
   - unzip
-  - vault
   - vim
   - wget
   - xz-utils
@@ -76,64 +62,66 @@ flatpaks: []
 
 pip: []
 
-git_repos:
-  - name: .local/share/tfenv
-    repo: https://github.com/tfutils/tfenv.git
-  - name: .local/share/tgenv
-    repo: https://github.com/cunymatthieu/tgenv.git
+git_repos: []
+
+krew_plugins:
+  - ctx
+  - ns
+  - get-all
+  - resource-capacity
 
 vscode:
   extensions:
-    - 4ops.terraform
-    - AmazonWebServices.aws-toolkit-vscode
-    - CoenraadS.bracket-pair-colorizer-2
-    - d4nyll.devops-extension-pack
-    - donjayamanne.git-extension-pack
-    - donjayamanne.python-extension-pack
-    - EditorConfig.EditorConfig
-    - formulahendry.docker-explorer
-    - Gruntfuggly.todo-tree
-    - HashiCorp.terraform
-    - marclipovsky.string-manipulation
+    - amazonwebservices.aws-toolkit-vscode
+    - dbcode.dbcode
+    - eamodio.gitlens
+    - editorconfig.editorconfig
+    - esbenp.prettier-vscode
+    - hashicorp.hcl
+    - hashicorp.terraform
+    - mineiros.terramate
+    - moshfeu.compare-folders
+    - ms-azuretools.vscode-containers
     - ms-azuretools.vscode-docker
-    - ms-vscode-remote.vscode-remote-extensionpack
-    - PKief.material-icon-theme
-    - quicktype.quicktype
-    - scala-lang.scala
-    - Tyriar.sort-lines
-    - vscjava.vscode-java-pack
-    - vscode-icons-team.vscode-icons
+    - ms-kubernetes-tools.vscode-kubernetes-tools
+    - ms-python.debugpy
+    - ms-python.python
+    - ms-python.vscode-python-envs
+    - opentofu.vscode-opentofu
+    - pkief.material-icon-theme
+    - qcz.text-power-tools
+    - redhat.vscode-yaml
   settings: {
-    "[ansible]": {
-      "editor.detectIndentation": false,
-      "editor.insertSpaces": true,
-      "editor.tabSize": 2
-    },
-    "editor.renderWhitespace": true,
+    "editor.codeActionsOnSave": {},
+    "editor.renderWhitespace": "all",
     "editor.rulers": [
       80,
       100,
       120
     ],
-    "files.associations": {
-      "**/ansible/**/hosts": "ini",
-      "**/ansible/**/inventory": "ini",
-      "**/defaults/**/*.yml": "jinja-yaml",
-      "**/group_vars/**/*": "jinja-yaml",
-      "**/handlers/*.yml": "ansible",
-      "**/host_vars/**/*": "jinja-yaml",
-      "**/meta/*.yml": "ansible",
-      "**/playbooks/**/*.yml": "ansible",
-      "**/roles/**/*.yml": "ansible",
-      "**/tasks/**/*.yml": "ansible",
-      "**/vars/**/*.yml": "jinja-yaml",
-      "Vagrantfile": "ruby",
-      "ansible.cfg": "ini"
-    },
+    "editor.tabSize": 2,
     "files.autoSave": "afterDelay",
-    "projectManager.any.baseFolders": [
-      "~/projects"
-    ],
-    "projectManager.any.maxDepthRecursion": 2,
-    "workbench.iconTheme": "vscode-icons"
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "git.autofetch": "all",
+    "git.confirmSync": false,
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.scrollback": 100000,
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.tree.indent": 15,
+    "workbench.tree.renderIndentGuides": "always",
+    "workbench.colorCustomizations": {
+        "tree.indentGuidesStroke": "#05ef3c"
+    },
+    "[terraform]": {
+        "editor.defaultFormatter": "hashicorp.terraform",
+        "editor.formatOnSave": true,
+        "editor.formatOnSaveMode": "file"
+    },
+    "[terraform-vars]": {
+        "editor.defaultFormatter": "hashicorp.terraform",
+        "editor.formatOnSave": true,
+        "editor.formatOnSaveMode": "file"
+    }
   }

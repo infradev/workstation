@@ -147,23 +147,17 @@
   with_items: "{{ git_repos }}"
   ignore_errors: yes
 
-# - name: Install VSCode Extensions
-#   command: "code --install-extension {{ item }} --force"
-#   with_items: "{{ vscode.extensions }}"
+- name: update Krew plugin list
+  shell: "kubectl krew update"
 
-# - name: Write VSCode Settings
-#   template:
-#     src: settings.json.j2
-#     dest: "~/.config/Code/User/settings.json"
-#     force: yes
-#     mode: 0644
+- name: Install Krew plugins
+  shell: "kubectl krew install {{ item }}"
+  with_items: "{{ krew_plugins }}"
+  when: krew_plugins is defined
 
-# - name: Write Terminator Settings
-#   template:
-#     src: config.j2
-#     dest: "~/.config/terminator/config"
-#     force: yes
-#     mode: 0644
+- name: Install VSCode Extensions
+  command: "code --install-extension {{ item }} --force"
+  with_items: "{{ vscode.extensions }}"
 
 - name: Remove useless packages from the cache
   apt:

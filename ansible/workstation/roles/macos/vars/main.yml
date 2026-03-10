@@ -8,6 +8,7 @@ homebrew:
   - coreutils
   - curl
   - direnv
+  - gh
   - git
   - gnupg
   - go
@@ -26,31 +27,24 @@ homebrew:
   - nmap
   - nvm
   - openssl
-  - pipenv
-  - poetry
   - pv
-  - pyenv
-  - pyenv-virtualenv
   - python3
   - sshuttle
   - telnet
-  - tfenv
+  - tenv
   - tree
   - vim
   - watch
   - wget
 
 homebrew_cask:
-  - cursor
   - dbeaver-community
-  - firefox
-  - google-chrome
+  - gcloud-cli
   - iterm2
   - multipass
   - session-manager-plugin
-  - slack
+  - visual-studio-code
   - xquartz
-  - zoom
 
 krew_plugins:
   - ctx
@@ -61,23 +55,25 @@ krew_plugins:
 vscode:
   extensions:
     - amazonwebservices.aws-toolkit-vscode
-    - amazonwebservices.amazon-q-vscode
     - dbcode.dbcode
-    - donjayamanne.git-extension-pack
-    - donjayamanne.python-extension-pack
-    - EditorConfig.EditorConfig
-    - github.vscode-github-actions
-    - github.vscode-pull-request-github
+    - eamodio.gitlens
+    - editorconfig.editorconfig
+    - esbenp.prettier-vscode
     - hashicorp.hcl
     - hashicorp.terraform
-    - mhutchie.git-graph
-    - Mineiros.terramate
+    - mineiros.terramate
     - moshfeu.compare-folders
+    - ms-azuretools.vscode-containers
     - ms-azuretools.vscode-docker
     - ms-kubernetes-tools.vscode-kubernetes-tools
-    - ms-vscode-remote.remote-containers
-    - PKief.material-icon-theme
+    - ms-python.debugpy
+    - ms-python.python
+    - ms-python.vscode-python-envs
+    - opentofu.vscode-opentofu
+    - pkief.material-icon-theme
     - qcz.text-power-tools
+    - redhat.vscode-yaml
+    - anthropic.claude-code
   settings: |
     {
       "editor.renderWhitespace": "all",
@@ -94,7 +90,6 @@ vscode:
       "files.trimTrailingWhitespace": true,
       "git.autofetch": "all",
       "git.confirmSync": false,
-      "terminal.integrated.defaultProfile.linux": "zsh",
       "terminal.integrated.scrollback": 100000,
       "workbench.iconTheme": "material-icon-theme",
       "workbench.tree.indent": 15,

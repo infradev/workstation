@@ -1,0 +1,20 @@
+repositories:
+  ppa: []
+  url:
+    - "deb https://pkgs.k8s.io/core:/stable:/v1.35/deb/ /"
+    - "deb https://packages.buildkite.com/helm-linux/helm-debian/any/ any main"
+    - "deb https://packages.cloud.google.com/apt cloud-sdk main"
+  key:
+    - url: "https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key"
+    - url: "https://packages.buildkite.com/helm-linux/helm-debian/gpgkey"
+    - url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+remote_executables:
+  - name: aws-iam-authenticator
+    url: "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.7.11/aws-iam-authenticator_0.7.11_linux_amd64"
+
+shell:
+  - curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+  - curl -LsSf https://astral.sh/uv/install.sh | sh
+  - cd "$(mktemp -d)" && LATEST_VERSION=$(curl --silent https://api.github.com/repos/tofuutils/tenv/releases/latest | jq -r .tag_name) && curl -O -L "https://github.com/tofuutils/tenv/releases/latest/download/tenv_${LATEST_VERSION}_amd64.deb" && sudo dpkg -i "tenv_${LATEST_VERSION}_amd64.deb"
+  - cd "$(mktemp -d)" && LATEST_VERSION=$(curl --silent https://api.github.com/repos/kubernetes-sigs/krew/releases/latest | jq -r .tag_name) && KREW="krew-linux_amd64" && curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/download/${LATEST_VERSION}/${KREW}.tar.gz" && tar zxvf "${KREW}.tar.gz" && ./${KREW} install krew
+  - cd "$(mktemp -d)" && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip -u awscliv2.zip && sudo ./aws/install --update
