@@ -12,6 +12,11 @@ packages:
   - ca-certificates
   - certbot
   - curl
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
   - google-cloud-cli
   - google-cloud-cli-gke-gcloud-auth-plugin
   - gdebi
