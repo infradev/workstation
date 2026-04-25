@@ -6,6 +6,7 @@ bashrc_includes:
   - "[ -f ~/.bash_profile ] && . ~/.bash_profile"
 
 packages:
+  - antigravity
   - apt-transport-https
   - bash-completion
   - build-essential
@@ -84,6 +85,7 @@ vscode:
     - esbenp.prettier-vscode
     - hashicorp.hcl
     - hashicorp.terraform
+    - googlecloudtools.cloudcode
     - mineiros.terramate
     - moshfeu.compare-folders
     - ms-azuretools.vscode-containers

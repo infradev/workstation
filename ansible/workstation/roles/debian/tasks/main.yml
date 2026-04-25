@@ -156,7 +156,7 @@
   when: krew_plugins is defined
 
 - name: Install VSCode Extensions
-  command: "code --install-extension {{ item }} --force"
+  command: "antigravity --install-extension {{ item }} --force"
   with_items: "{{ vscode.extensions }}"
 
 - name: Remove useless packages from the cache

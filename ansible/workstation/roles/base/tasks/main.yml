@@ -123,3 +123,7 @@
 
 - debug:
     msg: "{{ ansible_distribution }}"
+
+- debug:
+    msg: "{{ architecture }}-{{ distribution_major_version }}.yml"
+
