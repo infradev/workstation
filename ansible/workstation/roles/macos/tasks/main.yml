@@ -48,6 +48,6 @@
   when: krew_plugins is defined
 
 - name: Install VSCode Extensions
-  command: "code --install-extension {{ item }} --force"
+  command: "cursor --install-extension {{ item }} --force"
   loop: "{{ vscode.extensions }}"
   ignore_errors: yes
