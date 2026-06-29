@@ -6,7 +6,6 @@ bashrc_includes:
   - "[ -f ~/.bash_profile ] && . ~/.bash_profile"
 
 packages:
-  - antigravity
   - apt-transport-https
   - bash-completion
   - build-essential
