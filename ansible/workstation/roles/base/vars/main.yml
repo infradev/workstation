@@ -27,8 +27,10 @@ bashrc_includes:
   - "[ -f ~/.bash_aliases ] && . ~/.bash_aliases"
   - "[ -f ~/.bash_profile ] && . ~/.bash_profile"
 
-git_repos: []
-  # - name: projects/xandors/iac
-  #   repo: git@github.com:xandors/iac.git
+git_repos:
+  - name: projects/infradev/workstation
+    repo: git@github.com:infradev/workstation.git
+  - name: projects/awslabs/aws-terraform-dev-container
+    repo: git@github.com:awslabs/aws-terraform-dev-container.git
 
 repos: []
