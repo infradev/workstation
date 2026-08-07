@@ -54,6 +54,10 @@ export LDFLAGS="-L$(brew --prefix openssl)/lib"
 # krew
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
+# mysql & pg clients
+export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+
 # history size
 export HISTFILESIZE=1000000
 export HISTSIZE=1000000
@@ -64,4 +68,3 @@ uname -n -r -m
 
 
 . "$HOME/.bash_aliases"
-. "$HOME/.bash_swile"

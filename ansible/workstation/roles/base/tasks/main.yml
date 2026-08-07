@@ -102,7 +102,7 @@
   community.general.git_config:
     name: user.email
     scope: global
-    value: 'alexandre.souza@toptal.com'
+    value: 'alexandre@infradev.com.br'
 
 - name: Checkout git repos
   git:
@@ -126,4 +126,3 @@
 
 - debug:
     msg: "{{ architecture }}-{{ distribution_major_version }}.yml"
-

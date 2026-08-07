@@ -29,7 +29,6 @@ homebrew:
   - openssl
   - pv
   - python3
-  - sshuttle
   - telnet
   - tenv
   - tree
@@ -38,12 +37,14 @@ homebrew:
   - wget
 
 homebrew_cask:
-  - dbeaver-community
+  # - dbeaver-community
+  - claude
+  - claude-code
+  - cursor
   - gcloud-cli
   - iterm2
   - multipass
   - session-manager-plugin
-  - visual-studio-code
   - xquartz
 
 krew_plugins:
@@ -55,39 +56,62 @@ krew_plugins:
 vscode:
   extensions:
     - amazonwebservices.aws-toolkit-vscode
+    - anthropic.claude-code
+    - davidanson.vscode-markdownlint
     - dbcode.dbcode
+    - donjayamanne.githistory
     - eamodio.gitlens
     - editorconfig.editorconfig
     - esbenp.prettier-vscode
     - hashicorp.hcl
     - hashicorp.terraform
+    - mhutchie.git-graph
     - mineiros.terramate
     - moshfeu.compare-folders
+    - ms-azuretools.vscode-azureterraform
     - ms-azuretools.vscode-containers
     - ms-azuretools.vscode-docker
     - ms-kubernetes-tools.vscode-kubernetes-tools
     - ms-python.debugpy
     - ms-python.python
+    - ms-python.vscode-pylance
     - ms-python.vscode-python-envs
+    - ms-vscode-remote.remote-containers
+    - ms-vscode-remote.remote-ssh
+    - ms-vscode-remote.remote-ssh-edit
+    - ms-vscode.vscode-node-azure-pack
     - opentofu.vscode-opentofu
     - pkief.material-icon-theme
     - qcz.text-power-tools
     - redhat.vscode-yaml
-    - anthropic.claude-code
+    - run-at-scale.terraform-doc-snippets
+    - streetsidesoftware.code-spell-checker
+    - timonwong.shellcheck
+    - yzhang.markdown-all-in-one
   settings: |
     {
+      "terminal.integrated.defaultProfile.linux": "bash",
+      "terminal.integrated.profiles.linux": {
+        "bash": {
+          "path": "/bin/bash"
+        }
+      },
+      "editor.formatOnSave": true,
+      "editor.formatOnPaste": false,
+      "editor.formatOnType": false,
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true,
       "editor.renderWhitespace": "all",
       "editor.rulers": [
         80,
         100,
         120
       ],
-      "editor.tabSize": 2,
       "files.autoSave": "afterDelay",
       "files.eol": "\n",
+      "files.trimTrailingWhitespace": true,
       "files.insertFinalNewline": true,
       "files.trimFinalNewlines": true,
-      "files.trimTrailingWhitespace": true,
       "git.autofetch": "all",
       "git.confirmSync": false,
       "terminal.integrated.scrollback": 100000,
@@ -97,14 +121,34 @@ vscode:
       "workbench.colorCustomizations": {
         "tree.indentGuidesStroke": "#05ef3c"
       },
+
+      // Terraform settings
       "[terraform]": {
         "editor.defaultFormatter": "hashicorp.terraform",
         "editor.formatOnSave": true,
-        "editor.formatOnSaveMode": "file"
+        "editor.tabSize": 2
       },
       "[terraform-vars]": {
         "editor.defaultFormatter": "hashicorp.terraform",
         "editor.formatOnSave": true,
-        "editor.formatOnSaveMode": "file"
+        "editor.tabSize": 2
+      },
+      "terraform.languageServer": {
+        "enabled": true,
+        "args": []
+      },
+      "terraform.experimentalFeatures.validateOnSave": true,
+
+      // YAML settings
+      "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2
+      },
+
+      // Markdown settings
+      "[markdown]": {
+        "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+        "editor.formatOnSave": true
       }
     }

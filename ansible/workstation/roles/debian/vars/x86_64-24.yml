@@ -5,11 +5,13 @@ repositories:
     - "deb https://packages.buildkite.com/helm-linux/helm-debian/any/ any main"
     - "deb https://packages.cloud.google.com/apt cloud-sdk main"
     - "deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable"
+    - "deb https://downloads.claude.ai/claude-code/apt/stable stable main"
   key:
     - url: "https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key"
     - url: "https://packages.buildkite.com/helm-linux/helm-debian/gpgkey"
     - url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
     - url: "https://download.docker.com/linux/ubuntu/gpg"
+    - url: "https://downloads.claude.ai/keys/claude-code.asc"
 
 remote_executables:
   - name: aws-iam-authenticator
