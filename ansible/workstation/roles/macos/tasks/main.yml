@@ -6,8 +6,8 @@
     line: "{{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}/bin/bash"
   become: true
 
-- name: Change default shell to bash 4
-  shell: "chsh -s {{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}/bin/bash"
+# - name: Change default shell to bash 4
+#   shell: "chsh -s {{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}/bin/bash"
 
 - name: Change root default shell to bash 4
   shell: "chsh -s {{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}/bin/bash"

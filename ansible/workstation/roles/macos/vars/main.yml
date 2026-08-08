@@ -45,7 +45,10 @@ homebrew_cask:
   - iterm2
   - multipass
   - session-manager-plugin
+  - slack
+  - tailscale-app
   - xquartz
+  - zoom
 
 krew_plugins:
   - ctx
@@ -68,7 +71,6 @@ vscode:
     - mhutchie.git-graph
     - mineiros.terramate
     - moshfeu.compare-folders
-    - ms-azuretools.vscode-azureterraform
     - ms-azuretools.vscode-containers
     - ms-azuretools.vscode-docker
     - ms-kubernetes-tools.vscode-kubernetes-tools
@@ -78,24 +80,16 @@ vscode:
     - ms-python.vscode-python-envs
     - ms-vscode-remote.remote-containers
     - ms-vscode-remote.remote-ssh
-    - ms-vscode-remote.remote-ssh-edit
-    - ms-vscode.vscode-node-azure-pack
     - opentofu.vscode-opentofu
     - pkief.material-icon-theme
     - qcz.text-power-tools
     - redhat.vscode-yaml
-    - run-at-scale.terraform-doc-snippets
     - streetsidesoftware.code-spell-checker
     - timonwong.shellcheck
     - yzhang.markdown-all-in-one
   settings: |
     {
-      "terminal.integrated.defaultProfile.linux": "bash",
-      "terminal.integrated.profiles.linux": {
-        "bash": {
-          "path": "/bin/bash"
-        }
-      },
+      // Editor settings
       "editor.formatOnSave": true,
       "editor.formatOnPaste": false,
       "editor.formatOnType": false,
@@ -107,20 +101,61 @@ vscode:
         100,
         120
       ],
+      "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit"
+      },
+
+      // Files settings
       "files.autoSave": "afterDelay",
       "files.eol": "\n",
       "files.trimTrailingWhitespace": true,
       "files.insertFinalNewline": true,
-      "files.trimFinalNewlines": true,
+      "files.trimFinalNewlines": true,,
+      "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/*.tfstate": true,
+        "**/*.tfstate.*": true,
+        "**/.terraform": true,
+        ".terraform.lock.hcl": true
+      },
+
+      // Git settings
       "git.autofetch": "all",
+      "git.enableSmartCommit": true,
       "git.confirmSync": false,
+
+      // Terminal settings
       "terminal.integrated.scrollback": 100000,
+      "terminal.integrated.defaultProfile.linux": "bash",
+      "terminal.integrated.profiles.linux": {
+        "bash": {
+          "path": "/opt/homebrew/bin/bash"
+        }
+      },
+
+      // UI settings
       "workbench.iconTheme": "material-icon-theme",
       "workbench.tree.indent": 15,
       "workbench.tree.renderIndentGuides": "always",
       "workbench.colorCustomizations": {
         "tree.indentGuidesStroke": "#05ef3c"
       },
+      "window.autoDetectColorScheme": false,
+
+      // Spell checker settings
+      "cSpell.enabled": true,
+      "cSpell.words": [
+        "azurerm",
+        "checkov",
+        "devcontainer",
+        "gcloud",
+        "infracost",
+        "terragrunt",
+        "terrascan",
+        "tflint",
+        "tfsec"
+      ],
 
       // Terraform settings
       "[terraform]": {
