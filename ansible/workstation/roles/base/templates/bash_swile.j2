@@ -49,4 +49,10 @@ alias tunnel-br-development="kubectl config use-context arn:aws:eks:us-west-2:86
 alias tunnel-br-staging="kubectl config use-context arn:aws:eks:us-west-2:018759782867:cluster/brazil-staging && ssm-tunnel 10.0.0.0/8 central-network us-west-2"
 alias tunnel-br-production="kubectl config use-context arn:aws:eks:us-west-2:331318574317:cluster/brazil-production && ssm-tunnel 10.0.0.0/8 central-network us-west-2"
 
+alias dbeaver-prod="AWS_PROFILE="brazil-production" open /Applications/DBeaver.app"
+
+alias sops-edit='AWS_PROFILE=${PWD##*/} EDITOR="cursor --wait" sops secret.enc.yaml'
+alias sops-kustomize='AWS_PROFILE=${PWD##*/} kubectl kustomize --enable-alpha-plugins .'
+
+export TUNNEL_ENABLE_DNS_FLUSH=1
 export AWS_PROFILE=brazil-production

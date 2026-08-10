@@ -25,6 +25,7 @@ homebrew:
   - libpq
   - mysql-client
   - nmap
+  - node
   - nvm
   - openssl
   - pv
@@ -32,15 +33,17 @@ homebrew:
   - telnet
   - tenv
   - tree
+  - uv
   - vim
   - watch
   - wget
 
 homebrew_cask:
-  # - dbeaver-community
+  - dbeaver-community
   - claude
   - claude-code
   - cursor
+  - docker-desktop
   - gcloud-cli
   - iterm2
   - multipass

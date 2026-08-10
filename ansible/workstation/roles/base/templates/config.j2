@@ -3,8 +3,3 @@ Host multipass
   User ubuntu
   IdentityFile ~/.ssh/id_ed25519
   ForwardAgent yes
-
-host i-* mi-*
-  IdentityFile ~/.ssh/id_rsa
-  ProxyCommand ~/.ssh/aws-ssm-ec2-proxy-command.sh %h %r %p ~/.ssh/id_rsa.pub
-  StrictHostKeyChecking no
