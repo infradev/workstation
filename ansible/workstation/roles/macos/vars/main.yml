@@ -30,6 +30,8 @@ homebrew:
   - openssl
   - pv
   - python3
+  - sops
+  - stern
   - telnet
   - tenv
   - tree
