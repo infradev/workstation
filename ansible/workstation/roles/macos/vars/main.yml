@@ -48,6 +48,8 @@ homebrew_cask:
   - cursor
   - docker-desktop
   - gcloud-cli
+  - google-chrome
+  - google-drive
   - iterm2
   - multipass
   - session-manager-plugin
