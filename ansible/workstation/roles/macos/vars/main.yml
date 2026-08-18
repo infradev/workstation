@@ -6,6 +6,7 @@ homebrew:
   - bash-completion@2
   - certbot
   - coreutils
+  - crane
   - curl
   - direnv
   - gh
