@@ -4,19 +4,20 @@ set -e
 # This script installs Terraform and related tools
 
 # Versions
-TERRAFORM_VERSION=${1:-"1.15.8"}
+CHECKOV_VERSION=${12:-"3.3.13"}
+INFRACOST_VERSION=${11:-"0.10.45"}
+TENV_VERSION=${14:-"4.15.1"}
 TERRAFORM_DOCS_VERSION=${2:-"0.24.0"}
-TFSEC_VERSION=${3:-"1.28.14"}
+TERRAFORM_VERSION=${1:-"1.15.8"}
+TERRAGRUNT_VERSION=${9:-"1.1.2"}
+TERRAMATE_VERSION=${13:-"0.17.2"}
 TERRASCAN_VERSION=${4:-"1.19.9"}
-TFLINT_VERSION=${5:-"0.64.0"}
+TERRATEST_VERSION=${10:-"1.0.1"}
 TFLINT_AWS_RULESET_VERSION=${6:-"0.48.0"}
 TFLINT_AZURE_RULESET_VERSION=${7:-"0.32.0"}
 TFLINT_GCP_RULESET_VERSION=${8:-"0.39.0"}
-TERRAGRUNT_VERSION=${9:-"1.1.2"}
-TERRATEST_VERSION=${10:-"1.0.1"}
-INFRACOST_VERSION=${11:-"0.10.45"}
-CHECKOV_VERSION=${12:-"3.3.13"}
-TERRAMATE_VERSION=${13:-"0.17.2"}
+TFLINT_VERSION=${5:-"0.64.0"}
+TFSEC_VERSION=${3:-"1.28.14"}
 
 # Detect target architecture so the right release asset is downloaded
 # on both amd64 (x86_64) and arm64 (aarch64) hosts.
@@ -24,12 +25,10 @@ case "$(uname -m)" in
     x86_64|amd64)
         ARCH="amd64"
         TERRASCAN_ARCH="x86_64"
-        TERRAMATE_ARCH="x86_64"
         ;;
     aarch64|arm64)
         ARCH="arm64"
         TERRASCAN_ARCH="arm64"
-        TERRAMATE_ARCH="arm64"
         ;;
     *)
         echo "Unsupported architecture: $(uname -m)" >&2
@@ -38,11 +37,27 @@ case "$(uname -m)" in
 esac
 echo "Detected architecture: ${ARCH}"
 
-echo "Installing Terraform v${TERRAFORM_VERSION}..."
-curl -sSL -o /tmp/terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${ARCH}.zip"
-unzip -qq /tmp/terraform.zip -d /tmp
-sudo mv /tmp/terraform /usr/local/bin/
-rm -f /tmp/terraform.zip
+# tenv manages OpenTofu, Terraform, Terragrunt, Terramate and Atmos. It ships
+# proxy binaries in /usr/bin that pick a version per project from
+# .terraform-version, .tool-versions or a required_version constraint, so those
+# tools must NOT also be installed into /usr/local/bin - that directory comes
+# first on PATH and would shadow the proxies.
+echo "Installing tenv v${TENV_VERSION}..."
+curl -sSLo /tmp/tenv.deb "https://github.com/tofuutils/tenv/releases/download/v${TENV_VERSION}/tenv_v${TENV_VERSION}_${ARCH}.deb"
+sudo dpkg -i /tmp/tenv.deb
+rm -f /tmp/tenv.deb
+
+# Pre-install the pinned versions so the image works without a first-run
+# download, and record each as the default that the proxies fall back to when a
+# project pins nothing. Set TENV_GITHUB_TOKEN if these lookups hit GitHub API
+# rate limits during a build.
+export TENV_ROOT=/usr/local/share/tenv
+sudo mkdir -p "${TENV_ROOT}"
+sudo chown -R vscode:vscode "${TENV_ROOT}"
+
+echo "Installing Terraform v${TERRAFORM_VERSION} via tenv..."
+tenv terraform install "${TERRAFORM_VERSION}"
+tenv terraform use "${TERRAFORM_VERSION}"
 
 echo "Installing terraform-docs v${TERRAFORM_DOCS_VERSION}..."
 curl -sSLo /tmp/terraform-docs.tar.gz "https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${ARCH}.tar.gz"
@@ -83,10 +98,9 @@ curl -sSLo /tmp/tflint-gcp-ruleset.zip "https://github.com/terraform-linters/tfl
 unzip -qq /tmp/tflint-gcp-ruleset.zip -d ~/.tflint.d/plugins
 rm -f /tmp/tflint-gcp-ruleset.zip
 
-echo "Installing Terragrunt v${TERRAGRUNT_VERSION}..."
-curl -sSLo /tmp/terragrunt "https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_${ARCH}"
-sudo mv /tmp/terragrunt /usr/local/bin/
-sudo chmod +x /usr/local/bin/terragrunt
+echo "Installing Terragrunt v${TERRAGRUNT_VERSION} via tenv..."
+tenv terragrunt install "${TERRAGRUNT_VERSION}"
+tenv terragrunt use "${TERRAGRUNT_VERSION}"
 
 echo "Installing Terratest v${TERRATEST_VERSION}..."
 # Terratest is a Go library, so we'll set an environment variable to track the version
@@ -125,12 +139,9 @@ echo "Installing Checkov v${CHECKOV_VERSION}..."
 sudo PIPX_HOME=/usr/local/pipx PIPX_BIN_DIR=/usr/local/bin \
     pipx install "checkov==${CHECKOV_VERSION}"
 
-echo "Installing Terramate v${TERRAMATE_VERSION}..."
-curl -sSLo /tmp/terramate.tar.gz "https://github.com/terramate-io/terramate/releases/download/v${TERRAMATE_VERSION}/terramate_${TERRAMATE_VERSION}_linux_${TERRAMATE_ARCH}.tar.gz"
-tar -xzf /tmp/terramate.tar.gz -C /tmp
-sudo mv /tmp/terramate /usr/local/bin/
-sudo chmod +x /usr/local/bin/terramate
-rm -f /tmp/terramate.tar.gz
+echo "Installing Terramate v${TERRAMATE_VERSION} via tenv..."
+tenv terramate install "${TERRAMATE_VERSION}"
+tenv terramate use "${TERRAMATE_VERSION}"
 
 # Create .tflint.hcl config file
 mkdir -p /home/vscode/.tflint.d
@@ -150,5 +161,8 @@ EOF
 
 # Set ownership for the config file
 chown -R vscode:vscode /home/vscode/.tflint.d
+
+# tenv needs to stay writable so auto-install can add versions at runtime
+sudo chown -R vscode:vscode "${TENV_ROOT}"
 
 echo "Terraform tools installation complete!"
