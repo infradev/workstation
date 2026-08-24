@@ -34,7 +34,7 @@ RUN chmod +x /tmp/library-scripts/*.sh
 
 # Install common utilities and dependencies
 USER root
-RUN /tmp/library-scripts/common-utils.sh "${NVM_VERSION}"
+RUN /tmp/library-scripts/common-utils.sh "${NVM_VERSION}" "${RTK_VERSION}"
 
 # Install cloud CLI tools
 RUN /tmp/library-scripts/cloud-cli-tools.sh

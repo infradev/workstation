@@ -11,6 +11,7 @@
       "K9S_VERSION": "0.51.0",
       "KREW_VERSION": "0.5.0",
       "NVM_VERSION": "0.40.7",
+      "RTK_VERSION": "0.45.0",
       "TENV_VERSION": "4.15.1",
       "TERRAFORM_DOCS_VERSION": "0.24.0",
       "TERRAFORM_VERSION": "1.15.9",
