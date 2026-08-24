@@ -42,8 +42,15 @@
   "postStartCommand": "post-start",
   "remoteUser": "vscode",
 
-  // docker-in-docker requires the container to run in privileged mode
-  "runArgs": ["--privileged"],
+  // docker-in-docker requires the container to run in privileged mode.
+  // --name/--hostname derive from the project directory name instead of the
+  // generated vsc-<folder>-<hash>-uid one, so the container is predictable to
+  // address and the shell prompt inside it matches the project.
+  "runArgs": [
+    "--privileged",
+    "--name", "${localWorkspaceFolderBasename}",
+    "--hostname", "${localWorkspaceFolderBasename}"
+  ],
 
   // Configure tool-specific properties
   "customizations": {
