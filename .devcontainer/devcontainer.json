@@ -3,8 +3,8 @@
   "build": {
     "dockerfile": "Dockerfile",
     "args": {
-      "VARIANT": "ubuntu-22.04",
-      "TERRAFORM_VERSION": "1.15.8",
+      "VARIANT": "ubuntu26.04",
+      "TERRAFORM_VERSION": "1.15.9",
       "TERRAFORM_DOCS_VERSION": "0.24.0",
       "TFSEC_VERSION": "1.28.14",
       "TERRASCAN_VERSION": "1.19.9",
@@ -12,19 +12,23 @@
       "TFLINT_AWS_RULESET_VERSION": "0.48.0",
       "TFLINT_AZURE_RULESET_VERSION": "0.32.0",
       "TFLINT_GCP_RULESET_VERSION": "0.39.0",
-      "TERRAGRUNT_VERSION": "1.1.2",
+      "TERRAGRUNT_VERSION": "1.1.3",
       "TERRATEST_VERSION": "1.0.1",
       "INFRACOST_VERSION": "0.10.45",
-      "CHECKOV_VERSION": "3.3.9",
+      "CHECKOV_VERSION": "3.3.13",
       "TERRAMATE_VERSION": "0.17.2",
-      "NVM_VERSION": "0.40.6",
-      "AWS_IAM_AUTHENTICATOR_VERSION": "0.7.18",
+      "NVM_VERSION": "0.40.7",
+      "AWS_IAM_AUTHENTICATOR_VERSION": "0.7.19",
       "KREW_VERSION": "0.5.0",
       "K9S_VERSION": "0.51.0",
-      "TRIVY_VERSION": "0.73.0",
+      "TRIVY_VERSION": "0.74.0",
       "HADOLINT_VERSION": "2.15.1"
     }
   },
+  // Docker refuses to start when a bind mount source is missing on the host,
+  // so make sure every mounted path exists before the container is created.
+  "initializeCommand": "mkdir -p ${localEnv:HOME}${localEnv:USERPROFILE}/.aws ${localEnv:HOME}${localEnv:USERPROFILE}/.azure ${localEnv:HOME}${localEnv:USERPROFILE}/.config/gcloud ${localEnv:HOME}${localEnv:USERPROFILE}/.claude && [ -f ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json ] || echo '{}' > ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json",
+
   "postStartCommand": "post-start",
   "remoteUser": "vscode",
 
@@ -110,7 +114,7 @@
         "terminal.integrated.defaultProfile.linux": "bash",
         "terminal.integrated.profiles.linux": {
           "bash": {
-            "path": "/opt/homebrew/bin/bash"
+            "path": "/bin/bash"
           }
         },
 
@@ -189,7 +193,15 @@
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/gcloud,target=/home/vscode/.config/gcloud,type=bind,consistency=cached",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-    "source=terraform-cache,target=/home/vscode/.terraform.d/plugin-cache,type=volume"
+    "source=terraform-cache,target=/home/vscode/.terraform.d/plugin-cache,type=volume",
+
+    // Share Claude Code state (settings/permissions, plugins, skills, sessions)
+    // with the host. Mounted at the *same absolute path* as on the host so the
+    // absolute paths recorded in plugins/installed_plugins.json stay valid.
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.claude,target=${localEnv:HOME}${localEnv:USERPROFILE}/.claude,type=bind,consistency=cached",
+    // Global config (OAuth account, user-scope MCP servers, project trust).
+    // CLAUDE_CONFIG_DIR makes Claude Code look for it inside the .claude dir.
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json,target=${localEnv:HOME}${localEnv:USERPROFILE}/.claude/.claude.json,type=bind,consistency=cached"
   ],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally
@@ -197,12 +209,20 @@
 
   // Features to add to the dev container
   "features": {
+    // Claude Code needs a system-wide Node at feature-install time; the nvm
+    // install in common-utils.sh is per-user and not visible to it.
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/git:1": {
       "version": "latest",
       "ppa": false
     },
-    "ghcr.io/devcontainers/features/docker-in-docker:4": {},
+    // Ubuntu 26.04 (resolute) has no moby-cli packages; use upstream Docker CE,
+    // which does publish a resolute suite for amd64 and arm64.
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "moby": false
+    },
     "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
       "minikube": "none"
     },
@@ -217,6 +237,7 @@
 
   // Environment variables
   "containerEnv": {
-    "TF_PLUGIN_CACHE_DIR": "/home/vscode/.terraform.d/plugin-cache"
+    "TF_PLUGIN_CACHE_DIR": "/home/vscode/.terraform.d/plugin-cache",
+    "CLAUDE_CONFIG_DIR": "${localEnv:HOME}${localEnv:USERPROFILE}/.claude"
   }
 }

@@ -15,7 +15,7 @@ TFLINT_GCP_RULESET_VERSION=${8:-"0.39.0"}
 TERRAGRUNT_VERSION=${9:-"1.1.2"}
 TERRATEST_VERSION=${10:-"1.0.1"}
 INFRACOST_VERSION=${11:-"0.10.45"}
-CHECKOV_VERSION=${12:-"3.3.9"}
+CHECKOV_VERSION=${12:-"3.3.13"}
 TERRAMATE_VERSION=${13:-"0.17.2"}
 
 # Detect target architecture so the right release asset is downloaded
@@ -121,7 +121,9 @@ sudo mv "/tmp/infracost-linux-${ARCH}" /usr/local/bin/infracost
 rm -f /tmp/infracost.tar.gz
 
 echo "Installing Checkov v${CHECKOV_VERSION}..."
-pip3 install checkov==${CHECKOV_VERSION}
+# PEP 668: install into a pipx-managed venv instead of the system Python.
+sudo PIPX_HOME=/usr/local/pipx PIPX_BIN_DIR=/usr/local/bin \
+    pipx install "checkov==${CHECKOV_VERSION}"
 
 echo "Installing Terramate v${TERRAMATE_VERSION}..."
 curl -sSLo /tmp/terramate.tar.gz "https://github.com/terramate-io/terramate/releases/download/v${TERRAMATE_VERSION}/terramate_${TERRAMATE_VERSION}_linux_${TERRAMATE_ARCH}.tar.gz"

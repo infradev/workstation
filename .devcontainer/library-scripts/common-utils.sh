@@ -4,7 +4,7 @@ set -e
 # This script installs common utilities and dependencies
 
 # Versions
-NVM_VERSION=${1:-"0.40.6"}
+NVM_VERSION=${1:-"0.40.7"}
 
 # Install common packages
 echo "Installing common utilities and dependencies..."
@@ -21,6 +21,7 @@ apt-get -y install --no-install-recommends \
     make \
     python3 \
     python3-pip \
+    pipx \
     software-properties-common \
     unzip \
     vim \
@@ -28,8 +29,13 @@ apt-get -y install --no-install-recommends \
     zip
 
 # Install pre-commit
+# Ubuntu 26.04 ships an externally managed Python (PEP 668), so plain
+# "pip3 install" is refused. pipx installs each CLI in its own venv; pointing
+# PIPX_HOME/PIPX_BIN_DIR at /usr/local makes the tools available to all users.
 echo "Installing pre-commit..."
-pip3 install pre-commit
+export PIPX_HOME=/usr/local/pipx
+export PIPX_BIN_DIR=/usr/local/bin
+pipx install pre-commit
 
 # Install nvm (Node Version Manager) for the vscode user
 echo "Installing nvm v${NVM_VERSION}..."
