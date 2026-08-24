@@ -2,6 +2,7 @@ ARG VARIANT="resolute"
 FROM mcr.microsoft.com/devcontainers/base:${VARIANT}
 
 # Set versions as arguments
+ARG ACT_VERSION="0.2.89"
 ARG AWS_IAM_AUTHENTICATOR_VERSION="0.7.19"
 ARG CHECKOV_VERSION="3.3.13"
 ARG HADOLINT_VERSION="2.15.1"
@@ -23,6 +24,10 @@ ARG TFLINT_VERSION="0.64.0"
 ARG TFSEC_VERSION="1.28.14"
 ARG TRIVY_VERSION="0.74.0"
 
+# Git identity used for commits made inside the container
+ARG GIT_USER_EMAIL="alexandre@infradev.com.br"
+ARG GIT_USER_NAME="Alexandre Souza"
+
 # Copy library scripts
 COPY library-scripts/*.sh /tmp/library-scripts/
 RUN chmod +x /tmp/library-scripts/*.sh
@@ -34,8 +39,14 @@ RUN /tmp/library-scripts/common-utils.sh "${NVM_VERSION}"
 # Install cloud CLI tools
 RUN /tmp/library-scripts/cloud-cli-tools.sh
 
-# Install Terraform and related tools
-RUN /tmp/library-scripts/terraform-tools.sh \
+# Install Terraform and related tools.
+# tenv resolves Terragrunt/Terramate/OpenTofu versions through the GitHub API,
+# which rate-limits unauthenticated builds. The token is mounted as a BuildKit
+# secret so it never lands in an image layer; an absent secret just falls back
+# to unauthenticated lookups.
+RUN --mount=type=secret,id=tenv_github_token \
+    export TENV_GITHUB_TOKEN="$(cat /run/secrets/tenv_github_token 2>/dev/null || true)" \
+    && /tmp/library-scripts/terraform-tools.sh \
     "${TERRAFORM_VERSION}" \
     "${TERRAFORM_DOCS_VERSION}" \
     "${TFSEC_VERSION}" \
@@ -94,3 +105,10 @@ RUN chmod +x /usr/local/bin/post-start
 
 # Switch back to vscode user
 USER vscode
+
+# The workspace is bind-mounted from the host, so its files are usually owned by
+# a different uid than the container user. Trust every repository under
+# /workspaces so git does not refuse with "detected dubious ownership".
+RUN git config --global --add safe.directory "/workspaces/*" \
+    && git config --global user.name "${GIT_USER_NAME}" \
+    && git config --global user.email "${GIT_USER_EMAIL}"

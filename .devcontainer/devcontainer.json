@@ -23,12 +23,21 @@
       "TFLINT_GCP_RULESET_VERSION": "0.39.0",
       "TFLINT_VERSION": "0.64.0",
       "TFSEC_VERSION": "1.28.14",
-      "TRIVY_VERSION": "0.74.0"
-    }
+      "TRIVY_VERSION": "0.74.0",
+      "GIT_USER_NAME": "Alexandre Souza",
+      "GIT_USER_EMAIL": "alexandre@infradev.com.br"
+    },
+    // Feeds the host TENV_GITHUB_TOKEN to the build as a BuildKit secret so
+    // tenv's GitHub API lookups are authenticated without baking the token
+    // into an image layer. initializeCommand writes the file below.
+    "options": [
+      "--secret",
+      "id=tenv_github_token,src=${localEnv:HOME}${localEnv:USERPROFILE}/.tenv_github_token"
+    ]
   },
   // Docker refuses to start when a bind mount source is missing on the host,
   // so make sure every mounted path exists before the container is created.
-  "initializeCommand": "mkdir -p ${localEnv:HOME}${localEnv:USERPROFILE}/.aws ${localEnv:HOME}${localEnv:USERPROFILE}/.azure ${localEnv:HOME}${localEnv:USERPROFILE}/.config/gcloud ${localEnv:HOME}${localEnv:USERPROFILE}/.claude && [ -f ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json ] || echo '{}' > ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json",
+  "initializeCommand": "mkdir -p ${localEnv:HOME}${localEnv:USERPROFILE}/.aws ${localEnv:HOME}${localEnv:USERPROFILE}/.azure ${localEnv:HOME}${localEnv:USERPROFILE}/.config/gcloud ${localEnv:HOME}${localEnv:USERPROFILE}/.claude && [ -f ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json ] || echo '{}' > ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json; printf '%s' '${localEnv:TENV_GITHUB_TOKEN}' > ${localEnv:HOME}${localEnv:USERPROFILE}/.tenv_github_token && chmod 600 ${localEnv:HOME}${localEnv:USERPROFILE}/.tenv_github_token",
 
   "postStartCommand": "post-start",
   "remoteUser": "vscode",
@@ -233,7 +242,6 @@
     "ghcr.io/devcontainers-extra/features/helmfile:1": {},
     "ghcr.io/devcontainers-extra/features/kind:1": {},
     "ghcr.io/devcontainers-extra/features/sops:1": {},
-    "ghcr.io/devcontainers-extra/features/act:1": {},
     "ghcr.io/devcontainers-extra/features/apt-packages:1": {
       "packages": "mysql-client,postgresql-client,pv"
     }
