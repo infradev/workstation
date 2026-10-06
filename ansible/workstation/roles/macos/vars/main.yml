@@ -51,6 +51,7 @@ homebrew_cask:
   - google-chrome
   - google-drive
   - iterm2
+  - microsoft-teams
   - multipass
   - session-manager-plugin
   - slack
