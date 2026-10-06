@@ -4,8 +4,8 @@ set -e
 # This script installs common utilities and dependencies
 
 # Versions
-NVM_VERSION=${1:-"0.40.7"}
-RTK_VERSION=${2:-"0.45.0"}
+NVM_VERSION=${1:-"0.40.8"}
+RTK_VERSION=${2:-"0.51.0"}
 
 # Install common packages
 echo "Installing common utilities and dependencies..."

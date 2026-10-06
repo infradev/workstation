@@ -6,7 +6,7 @@ set -e
 # kubectl and Helm are installed via the "kubectl-helm-minikube" devcontainer feature.
 
 # Versions
-AWS_IAM_AUTHENTICATOR_VERSION=${1:-"0.7.18"}
+AWS_IAM_AUTHENTICATOR_VERSION=${1:-"0.7.20"}
 KREW_VERSION=${2:-"0.5.0"}
 K9S_VERSION=${3:-"0.51.0"}
 

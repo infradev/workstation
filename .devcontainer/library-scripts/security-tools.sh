@@ -4,7 +4,7 @@ set -e
 # This script installs security and linting tools: Trivy and Hadolint
 
 # Versions
-TRIVY_VERSION=${1:-"0.73.0"}
+TRIVY_VERSION=${1:-"0.75.0"}
 HADOLINT_VERSION=${2:-"2.15.1"}
 
 # Detect target architecture so the right release asset is downloaded
