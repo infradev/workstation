@@ -6,6 +6,9 @@ set -e
 # Versions
 NVM_VERSION=${1:-"0.40.8"}
 RTK_VERSION=${2:-"0.51.0"}
+YQ_VERSION=${3:-"4.54.1"}
+GLAB_VERSION=${4:-"1.121.0"}
+UV_VERSION=${5:-"0.12.23"}
 
 # Install common packages
 echo "Installing common utilities and dependencies..."
@@ -63,6 +66,29 @@ esac
 curl -fsSL "https://github.com/rtk-ai/rtk/releases/download/v${RTK_VERSION}/rtk-${RTK_TARGET}.tar.gz" \
     | tar -xz -C /usr/local/bin rtk
 chmod +x /usr/local/bin/rtk
+
+case "$(uname -m)" in
+    x86_64) ARCH="amd64"; UV_TARGET="x86_64-unknown-linux-gnu" ;;
+    aarch64) ARCH="arm64"; UV_TARGET="aarch64-unknown-linux-gnu" ;;
+    *) echo "Unsupported architecture: $(uname -m)"; exit 1 ;;
+esac
+
+# Install yq (mikefarah)
+echo "Installing yq v${YQ_VERSION}..."
+curl -fsSLo /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${ARCH}"
+chmod +x /usr/local/bin/yq
+
+# Install glab (GitLab CLI)
+echo "Installing glab v${GLAB_VERSION}..."
+curl -fsSLo /tmp/glab.deb "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_${ARCH}.deb"
+apt-get -y install --no-install-recommends /tmp/glab.deb
+rm -f /tmp/glab.deb
+
+# Install uv and uvx. plat-rasler (knowledge-base search) runs on uv.
+echo "Installing uv v${UV_VERSION}..."
+curl -fsSL "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-${UV_TARGET}.tar.gz" \
+    | tar -xz -C /usr/local/bin --strip-components=1 "uv-${UV_TARGET}/uv" "uv-${UV_TARGET}/uvx"
+chmod +x /usr/local/bin/uv /usr/local/bin/uvx
 
 # Create directory for Terraform plugin cache
 mkdir -p /home/vscode/.terraform.d/plugin-cache

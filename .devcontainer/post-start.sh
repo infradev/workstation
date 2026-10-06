@@ -43,7 +43,10 @@ echo "Checkov: $(checkov --version)"
 echo "Terramate: $(terramate --version)"
 echo "Pre-commit: $(pre-commit --version)"
 echo "GitHub CLI: $(gh --version | head -n 1)"
+echo "GitLab CLI: $(glab --version | head -n 1)"
 echo "jq: $(jq --version)"
+echo "yq: $(yq --version)"
+echo "uv: $(uv --version)"
 echo "Vim: $(vim --version | head -n 1)"
 echo ""
 
@@ -55,6 +58,10 @@ echo "krew: $(kubectl krew version 2>/dev/null | grep GitTag || echo 'installed'
 echo "k9s: $(k9s version | head -n 2 | tr '\n' ' ')"
 echo "Docker: $(docker --version)"
 echo "kind: $(kind --version)"
+echo "stern: $(stern --version | head -n 1)"
+echo "kubectx: $(kubectx --version 2>/dev/null || echo 'installed')"
+echo "argocd: $(argocd version --client --short 2>/dev/null)"
+echo "Session Manager plugin: $(session-manager-plugin --version)"
 echo ""
 
 echo "=== Security & Utility Tools ==="
@@ -95,3 +102,29 @@ echo ""
 if command -v devcontainer-info &> /dev/null; then
     devcontainer-info
 fi
+
+# Career Certified DevOps onboarding: list only the steps still pending, so
+# the section disappears once everything is set up.
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-/home/vscode/.claude}"
+pending=()
+[ -n "${GITLAB_TOKEN}" ] || \
+    pending+=("Export GITLAB_TOKEN (GitLab PAT, read_api scope) in the host shell, then rebuild")
+ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new -T git@gitlab.com 2>&1 | grep -q "Welcome to GitLab" || \
+    pending+=("Add ~/.ssh/id_rsa.pub to your GitLab account (ssh -T git@gitlab.com must greet you); the marketplace is cloned over SSH")
+[ -n "$(glab config get token --host gitlab.com 2>/dev/null)" ] || \
+    pending+=("glab auth login")
+{ [ -n "${TF_TOKEN_app_terraform_io}" ] || grep -qs app.terraform.io /home/vscode/.terraform.d/credentials.tfrc.json; } || \
+    pending+=("terraform login")
+grep -qs plat-claude-marketplace "${CLAUDE_DIR}/plugins/known_marketplaces.json" || \
+    pending+=("In Claude Code: install plat-claude-marketplace and the DevOps plugins, then /plat-context:setup --team devops")
+grep -qs '^\[sso-session plat-investigator\]' /home/vscode/.aws/config || \
+    pending+=("Run the EKS onboarding audit: ask Claude to \"onboard me to EKS\" (writes the plat-investigator SSO session, profiles and kube contexts)")
+pending+=("Sign in to AWS: aws sso login --sso-session plat-investigator --use-device-code")
+
+echo ""
+printf "\e[0;33m=== Next Steps (DevOps onboarding) ===\e[0m\n"
+i=1
+for step in "${pending[@]}"; do
+    echo "${i}. ${step}"
+    i=$((i + 1))
+done

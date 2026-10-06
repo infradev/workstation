@@ -2,14 +2,18 @@ ARG VARIANT="resolute"
 FROM mcr.microsoft.com/devcontainers/base:${VARIANT}
 
 # Set versions as arguments
-ARG ACT_VERSION="0.2.89"
+ARG ARGOCD_VERSION="3.5.3"
 ARG AWS_IAM_AUTHENTICATOR_VERSION="0.7.19"
 ARG CHECKOV_VERSION="3.3.13"
+ARG GLAB_VERSION="1.121.0"
 ARG HADOLINT_VERSION="2.15.1"
 ARG INFRACOST_VERSION="0.10.45"
 ARG K9S_VERSION="0.51.0"
 ARG KREW_VERSION="0.5.0"
+ARG KUBECTX_VERSION="0.11.0"
 ARG NVM_VERSION="0.40.7"
+ARG RTK_VERSION="0.51.0"
+ARG STERN_VERSION="1.34.0"
 ARG TENV_VERSION="4.15.1"
 ARG TERRAFORM_DOCS_VERSION="0.24.0"
 ARG TERRAFORM_VERSION="1.15.9"
@@ -23,6 +27,8 @@ ARG TFLINT_GCP_RULESET_VERSION="0.39.0"
 ARG TFLINT_VERSION="0.64.0"
 ARG TFSEC_VERSION="1.28.14"
 ARG TRIVY_VERSION="0.74.0"
+ARG UV_VERSION="0.12.23"
+ARG YQ_VERSION="4.54.1"
 
 # Git identity used for commits made inside the container
 ARG GIT_USER_EMAIL="alexandre@infradev.com.br"
@@ -34,7 +40,12 @@ RUN chmod +x /tmp/library-scripts/*.sh
 
 # Install common utilities and dependencies
 USER root
-RUN /tmp/library-scripts/common-utils.sh "${NVM_VERSION}" "${RTK_VERSION}"
+RUN /tmp/library-scripts/common-utils.sh \
+    "${NVM_VERSION}" \
+    "${RTK_VERSION}" \
+    "${YQ_VERSION}" \
+    "${GLAB_VERSION}" \
+    "${UV_VERSION}"
 
 # Install cloud CLI tools
 RUN /tmp/library-scripts/cloud-cli-tools.sh
@@ -62,11 +73,15 @@ RUN --mount=type=secret,id=tenv_github_token \
     "${TERRAMATE_VERSION}" \
     "${TENV_VERSION}"
 
-# Install Kubernetes CLI tools (aws-iam-authenticator, krew + plugins, k9s)
+# Install Kubernetes CLI tools (aws-iam-authenticator, krew + plugins, k9s,
+# stern, kubectx/kubens, argocd)
 RUN /tmp/library-scripts/kubernetes-tools.sh \
     "${AWS_IAM_AUTHENTICATOR_VERSION}" \
     "${KREW_VERSION}" \
-    "${K9S_VERSION}"
+    "${K9S_VERSION}" \
+    "${STERN_VERSION}" \
+    "${KUBECTX_VERSION}" \
+    "${ARGOCD_VERSION}"
 
 # Install security and linting tools (Trivy, Hadolint)
 RUN /tmp/library-scripts/security-tools.sh \

@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 set -e
 
-# This script installs AWS CLI, Azure CLI, and Google Cloud SDK
+# This script installs AWS CLI, the Session Manager plugin, Azure CLI, and
+# Google Cloud SDK
 
 # Detect target architecture so the right AWS CLI asset is downloaded
 # on both amd64 (x86_64) and arm64 (aarch64) hosts.
 case "$(uname -m)" in
     x86_64|amd64)
         AWS_CLI_ARCH="x86_64"
+        SSM_PLUGIN_ARCH="ubuntu_64bit"
         ;;
     aarch64|arm64)
         AWS_CLI_ARCH="aarch64"
+        SSM_PLUGIN_ARCH="ubuntu_arm64"
         ;;
     *)
         echo "Unsupported architecture: $(uname -m)" >&2
@@ -24,6 +27,12 @@ curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-${AWS_CLI_ARCH}.zip" -o
 unzip -qq /tmp/awscliv2.zip -d /tmp
 sudo /tmp/aws/install
 rm -rf /tmp/aws /tmp/awscliv2.zip
+
+# Install AWS Session Manager plugin
+echo "Installing AWS Session Manager plugin..."
+curl -sSL "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/${SSM_PLUGIN_ARCH}/session-manager-plugin.deb" -o /tmp/session-manager-plugin.deb
+sudo apt-get install -y /tmp/session-manager-plugin.deb
+rm -f /tmp/session-manager-plugin.deb
 
 # Install Azure CLI
 echo "Installing Azure CLI..."

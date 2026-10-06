@@ -4,14 +4,18 @@
     "dockerfile": "Dockerfile",
     "args": {
       "VARIANT": "ubuntu26.04",
+      "ARGOCD_VERSION": "3.5.3",
       "AWS_IAM_AUTHENTICATOR_VERSION": "0.7.20",
       "CHECKOV_VERSION": "3.3.23",
+      "GLAB_VERSION": "1.121.0",
       "HADOLINT_VERSION": "2.15.1",
       "INFRACOST_VERSION": "0.10.46",
       "K9S_VERSION": "0.51.0",
       "KREW_VERSION": "0.5.0",
+      "KUBECTX_VERSION": "0.11.0",
       "NVM_VERSION": "0.40.8",
       "RTK_VERSION": "0.51.0",
+      "STERN_VERSION": "1.34.0",
       "TENV_VERSION": "4.15.1",
       "TERRAFORM_DOCS_VERSION": "0.24.0",
       "TERRAFORM_VERSION": "1.16.5",
@@ -25,6 +29,8 @@
       "TFLINT_VERSION": "0.64.0",
       "TFSEC_VERSION": "1.28.14",
       "TRIVY_VERSION": "0.75.0",
+      "UV_VERSION": "0.12.23",
+      "YQ_VERSION": "4.54.1",
       "GIT_USER_NAME": "Alexandre Souza",
       "GIT_USER_EMAIL": "alexandre@infradev.com.br"
     },
@@ -38,7 +44,7 @@
   },
   // Docker refuses to start when a bind mount source is missing on the host,
   // so make sure every mounted path exists before the container is created.
-  "initializeCommand": "mkdir -p ${localEnv:HOME}${localEnv:USERPROFILE}/.aws ${localEnv:HOME}${localEnv:USERPROFILE}/.azure ${localEnv:HOME}${localEnv:USERPROFILE}/.config/gcloud ${localEnv:HOME}${localEnv:USERPROFILE}/.claude && [ -f ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json ] || echo '{}' > ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json; printf '%s' '${localEnv:TENV_GITHUB_TOKEN}' > ${localEnv:HOME}${localEnv:USERPROFILE}/.tenv_github_token && chmod 600 ${localEnv:HOME}${localEnv:USERPROFILE}/.tenv_github_token",
+  "initializeCommand": "mkdir -p ${localEnv:HOME}${localEnv:USERPROFILE}/.aws ${localEnv:HOME}${localEnv:USERPROFILE}/.azure ${localEnv:HOME}${localEnv:USERPROFILE}/.config/gcloud ${localEnv:HOME}${localEnv:USERPROFILE}/.config/glab-cli ${localEnv:HOME}${localEnv:USERPROFILE}/.kube ${localEnv:HOME}${localEnv:USERPROFILE}/.terraform.d ${localEnv:HOME}${localEnv:USERPROFILE}/.claude && ([ -f ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json ] || echo '{}' > ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json); printf '%s' '${localEnv:TENV_GITHUB_TOKEN}' > ${localEnv:HOME}${localEnv:USERPROFILE}/.tenv_github_token && chmod 600 ${localEnv:HOME}${localEnv:USERPROFILE}/.tenv_github_token",
 
   "postStartCommand": "post-start",
   "remoteUser": "vscode",
@@ -214,6 +220,13 @@
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/gcloud,target=/home/vscode/.config/gcloud,type=bind,consistency=cached",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/glab-cli,target=/home/vscode/.config/glab-cli,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.kube,target=/home/vscode/.kube,type=bind,consistency=cached",
+    // Holds credentials.tfrc.json from "terraform login" (Terraform Cloud).
+    // terraform login replaces that file via rename, which a single-file bind
+    // mount rejects, so the whole directory is mounted. The plugin-cache volume
+    // below is nested inside it.
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.terraform.d,target=/home/vscode/.terraform.d,type=bind,consistency=cached",
     "source=terraform-cache,target=/home/vscode/.terraform.d/plugin-cache,type=volume",
 
     // Share Claude Code state (settings/permissions, plugins, skills, sessions)
@@ -263,6 +276,12 @@
     // tenv resolves Terraform/Terragrunt/Terramate/OpenTofu per project and
     // downloads any version a repo pins but the image does not carry.
     "TENV_ROOT": "/usr/local/share/tenv",
-    "TENV_AUTO_INSTALL": "true"
+    "TENV_AUTO_INSTALL": "true",
+
+    // GitLab PAT (read_api) that lets Claude Code refresh plat-claude-marketplace
+    // at startup, and an optional Terraform Cloud token as an alternative to the
+    // mounted ~/.terraform.d/credentials.tfrc.json. Both come from the host shell.
+    "GITLAB_TOKEN": "${localEnv:GITLAB_TOKEN}",
+    "TF_TOKEN_app_terraform_io": "${localEnv:TF_TOKEN_app_terraform_io}"
   }
 }
