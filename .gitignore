@@ -30,3 +30,9 @@ override.tf.json
 
 .claude
 .remember/
+
+# Project-scoped devcontainer credentials (AWS/Azure/GCP/SSH/kube/Terraform
+# Cloud/Claude Code logins) - never commit real credentials. The directory
+# skeleton itself is tracked (.gitkeep) so it ships pre-created.
+.devcontainer/.creds/*/*
+!.devcontainer/.creds/*/.gitkeep
