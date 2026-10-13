@@ -1,0 +1,14 @@
+affaan-m/ECC
+vercel/find-skills
+cloudflare/security-audit-skill
+ayghri/i-have-adhd
+petergyang/no-ai-slop
+dietrichgebert/ponytail
+JuliusBrussee/caveman
+blader/humanizer
+forrestchang/andrej-karpathy-skills
+mattpocock/skills
+thought-stuff/claude-ste
+jfr992/terragrunt-skill
+akin-ozer/cc-devops-skills
+LukasNiessen/kubernetes-skill

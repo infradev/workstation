@@ -5,21 +5,54 @@ set -e
 # SPDX-License-Identifier: MIT-0
 
 # Load environment variables
-if [ -f "/home/vscode/.devcontainer/config/terraform.env" ]; then
+if [ -f "/home/alex/.devcontainer/config/terraform.env" ]; then
     echo "Loading Terraform environment variables..."
     set -a
-    source "/home/vscode/.devcontainer/config/terraform.env"
+    source "/home/alex/.devcontainer/config/terraform.env"
     set +a
 fi
 
 # Make scripts executable
-chmod +x /home/vscode/.devcontainer/scripts/*.sh
+chmod +x /home/alex/.devcontainer/scripts/*.sh
+
+# Seed an empty Claude Code config on first use of this project's creds dir
+[ -f "${CLAUDE_CONFIG_DIR:-/home/alex/.claude}/.claude.json" ] || \
+    echo '{}' > "${CLAUDE_CONFIG_DIR:-/home/alex/.claude}/.claude.json"
+
+# Install the Claude Code plugins/marketplaces documented in README.md's
+# install snippet. roles/base/vars/main.yml's claude.marketplaces+
+# claude.plugins is the canonical list - read straight from it (via yq) when
+# this workspace actually carries that ansible source (i.e. this devcontainer
+# template opened on the workstation repo itself; the path is relative to
+# the workspace root so it doesn't depend on the repo's folder name).
+# Otherwise fall back to the static one-per-line mirror in
+# .devcontainer/config/claude-{marketplaces,plugins}.txt, kept in sync by
+# hand for projects (like most real usages of this template) that don't
+# carry the ansible source. Idempotent; failures (e.g. an unconfirmed Tier 3
+# marketplace key) are tolerated, not fatal.
+if command -v claude >/dev/null 2>&1; then
+    ANSIBLE_CLAUDE_VARS="ansible/workstation/roles/base/vars/main.yml"
+    if [ -f "$ANSIBLE_CLAUDE_VARS" ] && command -v yq >/dev/null 2>&1; then
+        mapfile -t claude_marketplaces < <(yq -r '.claude.marketplaces[]' "$ANSIBLE_CLAUDE_VARS")
+        mapfile -t claude_plugins < <(yq -r '.claude.plugins[]' "$ANSIBLE_CLAUDE_VARS")
+    else
+        mapfile -t claude_marketplaces < /home/alex/.devcontainer/config/claude-marketplaces.txt
+        mapfile -t claude_plugins < /home/alex/.devcontainer/config/claude-plugins.txt
+    fi
+
+    for mp in "${claude_marketplaces[@]}"; do
+        claude plugin marketplace add "$mp" || true
+    done
+    for p in "${claude_plugins[@]}"; do
+        claude plugin install "$p" || true
+    done
+fi
 
 # Make krew and nvm available in this non-interactive shell (they are only
 # wired into PATH via .bashrc, which isn't sourced by postStartCommand)
-export KREW_ROOT="/home/vscode/.krew"
+export KREW_ROOT="/home/alex/.krew"
 export PATH="${KREW_ROOT}/bin:${PATH}"
-export NVM_DIR="/home/vscode/.nvm"
+export NVM_DIR="/home/alex/.nvm"
 # shellcheck disable=SC1091
 [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh"
 
@@ -103,26 +136,27 @@ if command -v devcontainer-info &> /dev/null; then
     devcontainer-info
 fi
 
-# Career Certified DevOps onboarding: list only the steps still pending, so
-# the section disappears once everything is set up.
-CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-/home/vscode/.claude}"
+# Onboarding: list only the steps still pending, so the section disappears
+# once everything is set up. Keep this list generic - org/team-specific
+# checks belong in the optional extended.sh hook below, not here.
 pending=()
-[ -n "${GITLAB_TOKEN}" ] || \
-    pending+=("Export GITLAB_TOKEN (GitLab PAT, read_api scope) in the host shell, then rebuild")
-ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new -T git@gitlab.com 2>&1 | grep -q "Welcome to GitLab" || \
-    pending+=("Add ~/.ssh/id_rsa.pub to your GitLab account (ssh -T git@gitlab.com must greet you); the marketplace is cloned over SSH")
-[ -n "$(glab config get token --host gitlab.com 2>/dev/null)" ] || \
-    pending+=("glab auth login")
-{ [ -n "${TF_TOKEN_app_terraform_io}" ] || grep -qs app.terraform.io /home/vscode/.terraform.d/credentials.tfrc.json; } || \
-    pending+=("terraform login")
-grep -qs plat-claude-marketplace "${CLAUDE_DIR}/plugins/known_marketplaces.json" || \
-    pending+=("In Claude Code: install plat-claude-marketplace and the DevOps plugins, then /plat-context:setup --team devops")
-grep -qs '^\[sso-session plat-investigator\]' /home/vscode/.aws/config || \
-    pending+=("Run the EKS onboarding audit: ask Claude to \"onboard me to EKS\" (writes the plat-investigator SSO session, profiles and kube contexts)")
-pending+=("Sign in to AWS: aws sso login --sso-session plat-investigator --use-device-code")
+pending+=("Sign in to AWS: .devcontainer/scripts/aws-auth.sh")
+pending+=("Sign in to Azure: .devcontainer/scripts/azure-auth.sh")
+pending+=("Sign in to GCP: .devcontainer/scripts/gcp-auth.sh")
+
+# Optional, org/team-specific additions (marketplace installs, internal SSO
+# sessions, etc.) are not part of this generic devcontainer. Drop a file at
+# .devcontainer/scripts/extended.sh to append more pending items - it is
+# sourced here (so it shares the `pending` array) if present, and skipped
+# otherwise.
+EXTENDED_SCRIPT="/home/alex/.devcontainer/scripts/extended.sh"
+if [ -f "${EXTENDED_SCRIPT}" ]; then
+    # shellcheck disable=SC1090
+    . "${EXTENDED_SCRIPT}"
+fi
 
 echo ""
-printf "\e[0;33m=== Next Steps (DevOps onboarding) ===\e[0m\n"
+printf "\e[0;33m=== Next Steps ===\e[0m\n"
 i=1
 for step in "${pending[@]}"; do
     echo "${i}. ${step}"

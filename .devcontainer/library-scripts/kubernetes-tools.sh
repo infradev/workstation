@@ -36,7 +36,7 @@ sudo mv /tmp/aws-iam-authenticator /usr/local/bin/
 sudo chmod +x /usr/local/bin/aws-iam-authenticator
 
 echo "Installing krew v${KREW_VERSION}..."
-export KREW_ROOT="/home/vscode/.krew"
+export KREW_ROOT="/home/alex/.krew"
 mkdir -p /tmp/krew-extract
 curl -sSLo /tmp/krew.tar.gz "https://github.com/kubernetes-sigs/krew/releases/download/v${KREW_VERSION}/krew-linux_${ARCH}.tar.gz"
 tar -xzf /tmp/krew.tar.gz -C /tmp/krew-extract
@@ -47,10 +47,10 @@ echo "Installing krew plugins: ctx, ns, get-all, resource-capacity..."
 "${KREW_ROOT}/bin/kubectl-krew" install ctx ns get-all resource-capacity
 
 {
-    echo 'export KREW_ROOT="/home/vscode/.krew"'
+    echo 'export KREW_ROOT="/home/alex/.krew"'
     echo 'export PATH="${KREW_ROOT}/bin:${PATH}"'
-} >> /home/vscode/.bashrc
-chown -R vscode:vscode "${KREW_ROOT}"
+} >> /home/alex/.bashrc
+chown -R alex:alex "${KREW_ROOT}"
 
 echo "Installing k9s v${K9S_VERSION}..."
 curl -sSLo /tmp/k9s.tar.gz "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_${ARCH}.tar.gz"

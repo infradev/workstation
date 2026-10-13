@@ -41,17 +41,17 @@ export PIPX_HOME=/usr/local/pipx
 export PIPX_BIN_DIR=/usr/local/bin
 pipx install pre-commit
 
-# Install nvm (Node Version Manager) for the vscode user
+# Install nvm (Node Version Manager) for the alex user
 echo "Installing nvm v${NVM_VERSION}..."
-export NVM_DIR="/home/vscode/.nvm"
+export NVM_DIR="/home/alex/.nvm"
 mkdir -p "${NVM_DIR}"
 curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | PROFILE=/dev/null bash
 {
-    echo 'export NVM_DIR="/home/vscode/.nvm"'
+    echo 'export NVM_DIR="/home/alex/.nvm"'
     echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
     echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"'
-} >> /home/vscode/.bashrc
-chown -R vscode:vscode "${NVM_DIR}"
+} >> /home/alex/.bashrc
+chown -R alex:alex "${NVM_DIR}"
 
 # Install rtk (Rust Token Killer). The Claude Code hook in ~/.claude/settings.json
 # (bind-mounted from the host) shells out to "rtk hook claude" on every Bash
@@ -84,19 +84,19 @@ curl -fsSLo /tmp/glab.deb "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_
 apt-get -y install --no-install-recommends /tmp/glab.deb
 rm -f /tmp/glab.deb
 
-# Install uv and uvx. plat-rasler (knowledge-base search) runs on uv.
+# Install uv and uvx.
 echo "Installing uv v${UV_VERSION}..."
 curl -fsSL "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-${UV_TARGET}.tar.gz" \
     | tar -xz -C /usr/local/bin --strip-components=1 "uv-${UV_TARGET}/uv" "uv-${UV_TARGET}/uvx"
 chmod +x /usr/local/bin/uv /usr/local/bin/uvx
 
 # Create directory for Terraform plugin cache
-mkdir -p /home/vscode/.terraform.d/plugin-cache
-chown -R vscode:vscode /home/vscode/.terraform.d
+mkdir -p /home/alex/.terraform.d/plugin-cache
+chown -R alex:alex /home/alex/.terraform.d
 
 # Create SSH directory
-mkdir -p /home/vscode/.ssh
-chown -R vscode:vscode /home/vscode/.ssh
-chmod 700 /home/vscode/.ssh
+mkdir -p /home/alex/.ssh
+chown -R alex:alex /home/alex/.ssh
+chmod 700 /home/alex/.ssh
 
 echo "Common utilities installation complete!"

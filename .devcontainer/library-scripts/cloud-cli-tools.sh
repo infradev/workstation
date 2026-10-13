@@ -49,13 +49,13 @@ echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.clou
 sudo apt-get update && sudo apt-get install -y google-cloud-cli
 
 # Create directories for credentials
-mkdir -p /home/vscode/.aws
-mkdir -p /home/vscode/.azure
-mkdir -p /home/vscode/.config/gcloud
+mkdir -p /home/alex/.aws
+mkdir -p /home/alex/.azure
+mkdir -p /home/alex/.config/gcloud
 
 # Set proper ownership
-chown -R vscode:vscode /home/vscode/.aws
-chown -R vscode:vscode /home/vscode/.azure
-chown -R vscode:vscode /home/vscode/.config/gcloud
+chown -R alex:alex /home/alex/.aws
+chown -R alex:alex /home/alex/.azure
+chown -R alex:alex /home/alex/.config/gcloud
 
 echo "Cloud CLI tools installation complete!"

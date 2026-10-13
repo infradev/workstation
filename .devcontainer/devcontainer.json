@@ -33,21 +33,17 @@
       "YQ_VERSION": "4.54.1",
       "GIT_USER_NAME": "Alexandre Souza",
       "GIT_USER_EMAIL": "alexandre@infradev.com.br"
-    },
-    // Feeds the host TENV_GITHUB_TOKEN to the build as a BuildKit secret so
-    // tenv's GitHub API lookups are authenticated without baking the token
-    // into an image layer. initializeCommand writes the file below.
-    "options": [
-      "--secret",
-      "id=tenv_github_token,src=${localEnv:HOME}${localEnv:USERPROFILE}/.tenv_github_token"
-    ]
+    }
   },
-  // Docker refuses to start when a bind mount source is missing on the host,
-  // so make sure every mounted path exists before the container is created.
-  "initializeCommand": "mkdir -p ${localEnv:HOME}${localEnv:USERPROFILE}/.aws ${localEnv:HOME}${localEnv:USERPROFILE}/.azure ${localEnv:HOME}${localEnv:USERPROFILE}/.config/gcloud ${localEnv:HOME}${localEnv:USERPROFILE}/.config/glab-cli ${localEnv:HOME}${localEnv:USERPROFILE}/.kube ${localEnv:HOME}${localEnv:USERPROFILE}/.terraform.d ${localEnv:HOME}${localEnv:USERPROFILE}/.claude && ([ -f ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json ] || echo '{}' > ${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json); printf '%s' '${localEnv:TENV_GITHUB_TOKEN}' > ${localEnv:HOME}${localEnv:USERPROFILE}/.tenv_github_token && chmod 600 ${localEnv:HOME}${localEnv:USERPROFILE}/.tenv_github_token",
+  // The .devcontainer/.creds/* directories are pre-created and committed
+  // (gitignored contents, tracked skeleton via .gitkeep) rather than mkdir'd
+  // here - see "Devcontainer: user and credential isolation" in README.md.
+  // Git doesn't preserve directory permission bits across a clone though, so
+  // the ssh dir's 700 still needs fixing up at init time.
+  "initializeCommand": "chmod 700 ${localWorkspaceFolder}/.devcontainer/.creds/ssh",
 
   "postStartCommand": "post-start",
-  "remoteUser": "vscode",
+  "remoteUser": "alex",
 
   // docker-in-docker requires the container to run in privileged mode.
   // --name/--hostname derive from the project directory name instead of the
@@ -214,28 +210,29 @@
     }
   },
 
-  // Mount host volumes for credentials and caching
+  // Mount project-scoped credential dirs (see initializeCommand above) and
+  // caching volumes. Each project/client gets its own isolated set of cloud
+  // and Claude Code logins instead of sharing the host's global ~/.aws etc.
   "mounts": [
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/gcloud,target=/home/vscode/.config/gcloud,type=bind,consistency=cached",
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/glab-cli,target=/home/vscode/.config/glab-cli,type=bind,consistency=cached",
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.kube,target=/home/vscode/.kube,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.devcontainer/.creds/aws,target=/home/alex/.aws,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.devcontainer/.creds/azure,target=/home/alex/.azure,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.devcontainer/.creds/gcloud,target=/home/alex/.config/gcloud,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.devcontainer/.creds/ssh,target=/home/alex/.ssh,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.devcontainer/.creds/glab-cli,target=/home/alex/.config/glab-cli,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.devcontainer/.creds/kube,target=/home/alex/.kube,type=bind,consistency=cached",
     // Holds credentials.tfrc.json from "terraform login" (Terraform Cloud).
     // terraform login replaces that file via rename, which a single-file bind
     // mount rejects, so the whole directory is mounted. The plugin-cache volume
-    // below is nested inside it.
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.terraform.d,target=/home/vscode/.terraform.d,type=bind,consistency=cached",
-    "source=terraform-cache,target=/home/vscode/.terraform.d/plugin-cache,type=volume",
+    // below is nested inside it (a shared, non-sensitive binary cache, so it
+    // stays a plain named volume rather than project-scoped).
+    "source=${localWorkspaceFolder}/.devcontainer/.creds/terraform.d,target=/home/alex/.terraform.d,type=bind,consistency=cached",
+    "source=terraform-cache,target=/home/alex/.terraform.d/plugin-cache,type=volume",
 
-    // Share Claude Code state (settings/permissions, plugins, skills, sessions)
-    // with the host. Mounted at the *same absolute path* as on the host so the
-    // absolute paths recorded in plugins/installed_plugins.json stay valid.
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.claude,target=${localEnv:HOME}${localEnv:USERPROFILE}/.claude,type=bind,consistency=cached",
-    // Global config (OAuth account, user-scope MCP servers, project trust).
-    // CLAUDE_CONFIG_DIR makes Claude Code look for it inside the .claude dir.
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json,target=${localEnv:HOME}${localEnv:USERPROFILE}/.claude/.claude.json,type=bind,consistency=cached"
+    // Claude Code state (OAuth login, settings/permissions, plugins, skills,
+    // sessions, project trust - .claude.json lives inside this same dir, see
+    // initializeCommand) - project-scoped, so each project has its own
+    // separate Claude Code login instead of sharing the host's.
+    "source=${localWorkspaceFolder}/.devcontainer/.creds/claude,target=/home/alex/.claude,type=bind,consistency=cached"
   ],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally
@@ -264,24 +261,23 @@
     "ghcr.io/devcontainers-extra/features/kind:1": {},
     "ghcr.io/devcontainers-extra/features/sops:1": {},
     "ghcr.io/devcontainers-extra/features/apt-packages:1": {
-      "packages": "mysql-client,postgresql-client,pv"
+      "packages": "mysql-client,postgresql-client,pv,direnv"
     }
   },
 
   // Environment variables
   "containerEnv": {
-    "TF_PLUGIN_CACHE_DIR": "/home/vscode/.terraform.d/plugin-cache",
-    "CLAUDE_CONFIG_DIR": "${localEnv:HOME}${localEnv:USERPROFILE}/.claude",
+    "TF_PLUGIN_CACHE_DIR": "/home/alex/.terraform.d/plugin-cache",
+    "CLAUDE_CONFIG_DIR": "/home/alex/.claude",
 
     // tenv resolves Terraform/Terragrunt/Terramate/OpenTofu per project and
     // downloads any version a repo pins but the image does not carry.
     "TENV_ROOT": "/usr/local/share/tenv",
     "TENV_AUTO_INSTALL": "true",
 
-    // GitLab PAT (read_api) that lets Claude Code refresh plat-claude-marketplace
-    // at startup, and an optional Terraform Cloud token as an alternative to the
-    // mounted ~/.terraform.d/credentials.tfrc.json. Both come from the host shell.
-    "GITLAB_TOKEN": "${localEnv:GITLAB_TOKEN}",
-    "TF_TOKEN_app_terraform_io": "${localEnv:TF_TOKEN_app_terraform_io}"
+    // Authenticates tenv's own GitHub API lookups (Terragrunt/Terramate/
+    // OpenTofu version resolution) at runtime; unset just falls back to
+    // unauthenticated, rate-limited lookups.
+    "TENV_GITHUB_TOKEN": "${localEnv:TENV_GITHUB_TOKEN}"
   }
 }

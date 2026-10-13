@@ -53,7 +53,7 @@ rm -f /tmp/tenv.deb
 # rate limits during a build.
 export TENV_ROOT=/usr/local/share/tenv
 sudo mkdir -p "${TENV_ROOT}"
-sudo chown -R vscode:vscode "${TENV_ROOT}"
+sudo chown -R alex:alex "${TENV_ROOT}"
 
 echo "Installing Terraform v${TERRAFORM_VERSION} via tenv..."
 tenv terraform install "${TERRAFORM_VERSION}"
@@ -104,7 +104,7 @@ tenv terragrunt use "${TERRAGRUNT_VERSION}"
 
 echo "Installing Terratest v${TERRATEST_VERSION}..."
 # Terratest is a Go library, so we'll set an environment variable to track the version
-echo "export TERRATEST_VERSION=${TERRATEST_VERSION}" >> /home/vscode/.bashrc
+echo "export TERRATEST_VERSION=${TERRATEST_VERSION}" >> /home/alex/.bashrc
 
 # Install Go if not already installed
 if ! command -v go &> /dev/null; then
@@ -112,8 +112,8 @@ if ! command -v go &> /dev/null; then
     GO_VERSION="1.20.5"
     curl -sSLo /tmp/go.tar.gz "https://golang.org/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz"
     sudo tar -C /usr/local -xzf /tmp/go.tar.gz
-    echo 'export PATH=$PATH:/usr/local/go/bin' >> /home/vscode/.bashrc
-    echo 'export PATH=$PATH:$HOME/go/bin' >> /home/vscode/.bashrc
+    echo 'export PATH=$PATH:/usr/local/go/bin' >> /home/alex/.bashrc
+    echo 'export PATH=$PATH:$HOME/go/bin' >> /home/alex/.bashrc
     rm -f /tmp/go.tar.gz
 fi
 
@@ -144,8 +144,8 @@ tenv terramate install "${TERRAMATE_VERSION}"
 tenv terramate use "${TERRAMATE_VERSION}"
 
 # Create .tflint.hcl config file
-mkdir -p /home/vscode/.tflint.d
-cat > /home/vscode/.tflint.hcl << EOF
+mkdir -p /home/alex/.tflint.d
+cat > /home/alex/.tflint.hcl << EOF
 plugin "aws" {
   enabled = true
 }
@@ -160,9 +160,9 @@ plugin "google" {
 EOF
 
 # Set ownership for the config file
-chown -R vscode:vscode /home/vscode/.tflint.d
+chown -R alex:alex /home/alex/.tflint.d
 
 # tenv needs to stay writable so auto-install can add versions at runtime
-sudo chown -R vscode:vscode "${TENV_ROOT}"
+sudo chown -R alex:alex "${TENV_ROOT}"
 
 echo "Terraform tools installation complete!"
