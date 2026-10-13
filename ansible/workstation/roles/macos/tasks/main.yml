@@ -6,9 +6,6 @@
     line: "{{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}/bin/bash"
   become: true
 
-# - name: Change default shell to bash 4
-#   shell: "chsh -s {{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}/bin/bash"
-
 - name: Change root default shell to bash 4
   shell: "chsh -s {{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}/bin/bash"
   become: true
@@ -34,7 +31,7 @@
 
 - name: Ensure krew plugins directory exists
   file:
-    path: "~/.krew"
+    path: "{{ local_home }}/.krew"
     state: directory
     owner: "{{ user_name }}"
     recurse: yes
@@ -49,5 +46,5 @@
 
 - name: Install VSCode Extensions
   command: "cursor --install-extension {{ item }} --force"
-  loop: "{{ vscode.extensions }}"
+  loop: "{{ vscode.extensions.common + vscode.extensions.client_only }}"
   ignore_errors: yes
