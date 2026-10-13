@@ -31,6 +31,21 @@ chmod +x /home/alex/.devcontainer/scripts/*.sh
 # carry the ansible source. Idempotent; failures (e.g. an unconfirmed Tier 3
 # marketplace key) are tolerated, not fatal.
 if command -v claude >/dev/null 2>&1; then
+    # /home/alex/.claude/plugins/cache can be root-owned (seeded at image
+    # build time by the claude-code devcontainer Feature) while alex clones
+    # into it at runtime - git's ownership check then refuses every clone
+    # with "detected dubious ownership". Trust it once; this is a
+    # single-user devcontainer, not a shared multi-tenant git host.
+    git config --global --get-all safe.directory 2>/dev/null | grep -qx '\*' || \
+        git config --global --add safe.directory '*'
+
+    # Clear scratch clones left behind by runs that failed before the
+    # safe.directory fix above - a half-written temp clone can leave a
+    # corrupted local git config ("unknown error... reading the
+    # configuration files") that keeps failing even after the real cause
+    # is fixed, since retries reuse the same broken directory.
+    rm -rf /home/alex/.claude/plugins/cache/temp_*
+
     ANSIBLE_CLAUDE_VARS="ansible/workstation/roles/base/vars/main.yml"
     if [ -f "$ANSIBLE_CLAUDE_VARS" ] && command -v yq >/dev/null 2>&1; then
         mapfile -t claude_marketplaces < <(yq -r '.claude.marketplaces[]' "$ANSIBLE_CLAUDE_VARS")
@@ -40,11 +55,26 @@ if command -v claude >/dev/null 2>&1; then
         mapfile -t claude_plugins < /home/alex/.devcontainer/config/claude-plugins.txt
     fi
 
+    claude_marketplace_failures=()
+    claude_plugin_failures=()
     for mp in "${claude_marketplaces[@]}"; do
-        claude plugin marketplace add "$mp" || true
+        if ! out=$(claude plugin marketplace add "$mp" 2>&1); then
+            claude_marketplace_failures+=("${mp}: ${out}")
+        fi
     done
+
+    # claude-plugins-official ships built into the CLI, so it's never in the
+    # marketplaces list above - but a fresh, project-scoped .claude dir (this
+    # devcontainer's per-project credential isolation) has no local cache of
+    # its catalog yet, and every @claude-plugins-official install 404s with
+    # "local copy may be out of date" until it's seeded/refreshed once.
+    claude plugin marketplace add anthropics/claude-plugins-official >/dev/null 2>&1 || \
+        claude plugin marketplace update claude-plugins-official >/dev/null 2>&1 || true
+
     for p in "${claude_plugins[@]}"; do
-        claude plugin install "$p" || true
+        if ! out=$(claude plugin install "$p" 2>&1); then
+            claude_plugin_failures+=("${p}: ${out}")
+        fi
     done
 fi
 
@@ -153,6 +183,18 @@ EXTENDED_SCRIPT="/home/alex/.devcontainer/scripts/extended.sh"
 if [ -f "${EXTENDED_SCRIPT}" ]; then
     # shellcheck disable=SC1090
     . "${EXTENDED_SCRIPT}"
+fi
+
+if [ "${#claude_marketplace_failures[@]}" -gt 0 ] || [ "${#claude_plugin_failures[@]}" -gt 0 ]; then
+    echo ""
+    printf "\e[0;31m=== Claude plugin/marketplace install failures ===\e[0m\n"
+    for f in "${claude_marketplace_failures[@]}"; do
+        echo "marketplace: ${f}"
+    done
+    for f in "${claude_plugin_failures[@]}"; do
+        echo "plugin: ${f}"
+    done
+    echo "(a failure can be expected noise - e.g. already registered/installed - or a real issue; re-run '.devcontainer/post-start.sh' after fixing to retry)"
 fi
 
 echo ""

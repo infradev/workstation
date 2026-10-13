@@ -83,11 +83,13 @@ Standalone:
 
 ## Manual-install skills (not `/plugin`-installable)
 
-These ship as bare `SKILL.md` folders, not plugin marketplaces (no `.claude-plugin/marketplace.json`) — install by cloning into `~/.claude/skills/<name>/`, not `/plugin install`.
+These ship as bare `SKILL.md` folders, not plugin marketplaces (no `.claude-plugin/marketplace.json`) — install by cloning into `~/.claude/skills/<name>/`, not `/plugin install`. `.devcontainer/scripts/install-manual-skills.sh` in the workstation repo automates all of them (reading `.devcontainer/config/claude-manual-skills.txt`), plus `apex-skills` via its own `npx apex-skills` installer.
 
 - `eks-operation-review` (`aws-samples/sample-eks-operation-review-skill`) — 10-area operational audit of a live EKS cluster (networking, autoscaling, observability, access, add-ons, workload config, deployments, lifecycle, IaC, process), GREEN/AMBER/RED report. Not for upgrade-readiness or architectural design.
 - `eks-upgrade-check` (`aws-samples/sample-eks-upgrade-skill`) — EKS upgrade readiness score (0-100%) across 8 areas, read-only, with remediation steps. Use for "about to upgrade"; use `eks-operation-review` for current-state health instead.
 - `apex-skills` (`aws-samples/sample-apex-skills`) — curated collection of 25+ AWS-SSA-authored platform-engineering skills (ECS/EKS architecture, security, cost, build, observability, modernization, Graviton migration, Terraform, and more). Browse the repo for the specific domain needed; has its own npx installer.
+- `security-audit-skill` (`cloudflare/security-audit-skill`) — deep, protocol-by-protocol security audit skill (AI/LLM, client-side, cloud/deployment, data isolation, memory safety, supply chain, web/auth, and more). No `.claude-plugin/marketplace.json`, so it's clone-only, not `/plugin`-installable despite the similarly-named official `security-guidance` plugin.
+- `no-ai-slop` (`petergyang/no-ai-slop`) — anti-AI-slop writing linter, paired with `ste-writing` for plans/reports/user-facing messages (see Writing style above). The repo's top level is a `.codex-plugin` for Codex; only `skills/no-ai-slop/SKILL.md` applies to Claude Code, so clone that path, not the whole repo as a marketplace.
 - From `aws-samples/sample-aws-resilience-skill`:
   - `aws-resilience-modeling` — architecture resilience analysis: failure modes, component dependency mapping, risk scoring, DR plan design.
   - `aws-rma-assessment` — interactive Reliability/Maintainability/Availability maturity questionnaire (36 or 80 questions) against the Well-Architected framework, with an improvement roadmap.

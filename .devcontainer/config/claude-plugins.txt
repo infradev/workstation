@@ -5,15 +5,12 @@ cloudflare@claude-plugins-official
 security-guidance@claude-plugins-official
 claude-security@claude-plugins-official
 ecc@ecc
-find-skills@find-skills
-security-audit-skill@security-audit-skill
 i-have-adhd@i-have-adhd
-no-ai-slop@no-ai-slop
 ponytail@ponytail
 caveman@caveman
 humanizer@humanizer
 andrej-karpathy-skills@karpathy-skills
-grill-with-docs@skills
+mattpocock-skills@mattpocock
 ste-writing@thought-stuff
 terragrunt-skill@jfr992
 devops-skills@akin-ozer

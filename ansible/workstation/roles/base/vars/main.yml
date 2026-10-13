@@ -164,7 +164,7 @@ vscode:
       },
       "terraform.languageServer": {
         "enabled": true,
-        "args": []
+        "args": ["serve"]
       },
       "terraform.experimentalFeatures.validateOnSave": true,
 
@@ -185,12 +185,9 @@ vscode:
 claude:
   marketplaces:
     - affaan-m/ECC
-    - vercel/find-skills
-    - cloudflare/security-audit-skill
-    # Tier 3 (personal/style) - marketplace key unconfirmed for all three;
+    # Tier 3 (personal/style) - marketplace key unconfirmed for both;
     # plugins below are best-guess installs, tolerated by ignore_errors.
     - ayghri/i-have-adhd
-    - petergyang/no-ai-slop
     - dietrichgebert/ponytail
     # Already in active use (caveman mode, humanizer required by this
     # user's own ~/.claude/CLAUDE.md for Slack messages).
@@ -213,15 +210,12 @@ claude:
     - security-guidance@claude-plugins-official
     - claude-security@claude-plugins-official
     - ecc@ecc
-    - find-skills@find-skills
-    - security-audit-skill@security-audit-skill
     - i-have-adhd@i-have-adhd
-    - no-ai-slop@no-ai-slop
     - ponytail@ponytail
     - caveman@caveman
     - humanizer@humanizer
     - andrej-karpathy-skills@karpathy-skills
-    - grill-with-docs@skills
+    - mattpocock-skills@mattpocock
     - ste-writing@thought-stuff
     - terragrunt-skill@jfr992
     - devops-skills@akin-ozer

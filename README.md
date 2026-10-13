@@ -85,7 +85,7 @@ Opens a menu: `Marketplaces` → `Add marketplace` (paste `owner/repo` or full U
 | Skill | Marketplace source | Commands |
 | --- | --- | --- |
 | **caveman** | `JuliusBrussee/caveman` | `/plugin marketplace add JuliusBrussee/caveman` then `/plugin install caveman@caveman` |
-| **superpowers** | official (`anthropics/claude-plugins-official`) | `/plugin install superpowers@claude-plugins-official` (marketplace already registered by default) |
+| **superpowers** | official (`anthropics/claude-plugins-official`) | `/plugin install superpowers@claude-plugins-official` (marketplace already registered by default on a normal host install; a fresh, project-scoped `.claude` dir - like the devcontainer's - has no local catalog cache yet, so the first `@claude-plugins-official` install 404s until `claude plugin marketplace add anthropics/claude-plugins-official` runs once - `post-start.sh` does this automatically) |
 | **humanizer** | `blader/humanizer` | `/plugin marketplace add blader/humanizer` then `/plugin install humanizer@humanizer` |
 | **andrej-karpathy-skills** | `forrestchang/andrej-karpathy-skills` | `/plugin marketplace add forrestchang/andrej-karpathy-skills` then `/plugin install andrej-karpathy-skills@karpathy-skills` |
 | **ECC** | `affaan-m/ECC` | `/plugin marketplace add affaan-m/ECC` then `/plugin install ecc@ecc` |
@@ -101,10 +101,7 @@ Opens a menu: `Marketplaces` → `Add marketplace` (paste `owner/repo` or full U
 | Skill | Repo | Commands |
 | --- | --- | --- |
 | **i-have-adhd** | `ayghri/i-have-adhd` | `/plugin marketplace add ayghri/i-have-adhd`, then `/plugin` → Install plugin, pick it from the list (marketplace key unconfirmed — use the UI, not a guessed CLI name) |
-| **no-ai-slop** | `petergyang/no-ai-slop` | `/plugin marketplace add petergyang/no-ai-slop`, then `/plugin` → Install plugin |
 | **ponytail** | `dietrichgebert/ponytail` | `/plugin marketplace add dietrichgebert/ponytail`, then `/plugin` → Install plugin |
-| **find-skills** | `vercel/find-skills` | `/plugin marketplace add vercel/find-skills`, then `/plugin` → Install plugin |
-| **security-audit-skill** | `cloudflare/security-audit-skill` | `/plugin marketplace add cloudflare/security-audit-skill`, then `/plugin` → Install plugin |
 
 ### Config: where it lands
 
@@ -134,9 +131,7 @@ Scoped to the marketplaces listed above only.
 
 - `aws-agents-for-devsecops` — security scanning, incident investigation, threat modeling, pentesting, release-readiness. Direct hit for the role.
 - `aws-core` — IAM, Secrets Manager, CloudFormation/CDK, containers, observability, serverless. Foundation for the Atlas ECS/Lambda/RDS/CloudFront stack.
-- `ecc` — pull specific skills: `security-review`, `security-scan`, `kubernetes-patterns`, `docker-patterns`, `architecture-decision-records`, `github-ops`, `git-workflow`, `production-audit`, `cost-tracking`, `network-config-validation`. Plugin is huge — use `/find-skills` later to mine more.
-- `find-skills` — meta-skill, keeps discovery going as needs shift.
-- `security-audit-skill` (`cloudflare/security-audit-skill`) — dedicated security-audit skill, direct hit for devsecops.
+- `ecc` — pull specific skills: `security-review`, `security-scan`, `kubernetes-patterns`, `docker-patterns`, `architecture-decision-records`, `github-ops`, `git-workflow`, `production-audit`, `cost-tracking`, `network-config-validation`. Plugin is huge.
 - `security-guidance` — official security best-practices skill, direct hit for the role.
 - `claude-security` — official security-focused skill, direct hit for the role.
 - `code-review`, `code-simplifier`, `pr-review-toolkit` — code quality/review tooling, requested.
@@ -154,14 +149,14 @@ Scoped to the marketplaces listed above only.
 
 **Tier 3 — personal/style, installed per request:**
 
-- `i-have-adhd` (`ayghri/i-have-adhd`), `no-ai-slop` (`petergyang/no-ai-slop`), `ponytail` (`dietrichgebert/ponytail`) — not devsecops-specific, but requested. **Marketplace key unconfirmed for all three** (the repo's `.claude-plugin/marketplace.json` may declare a different name than the repo itself) - the install snippet's guesses may need correcting via `/plugin` → Install plugin → pick from list.
+- `i-have-adhd` (`ayghri/i-have-adhd`), `ponytail` (`dietrichgebert/ponytail`) — not devsecops-specific, but requested. **Marketplace key unconfirmed for both** (the repo's `.claude-plugin/marketplace.json` may declare a different name than the repo itself) - the install snippet's guesses may need correcting via `/plugin` → Install plugin → pick from list.
 - `caveman` (`JuliusBrussee/caveman`), `humanizer` (`blader/humanizer`) — personal style preferences, not role-specific, but already in active use (caveman mode, and `humanizer` is required by this user's own `~/.claude/CLAUDE.md` for Slack messages).
 - `andrej-karpathy-skills` (`forrestchang/andrej-karpathy-skills`) — ML-training focused, off-target for this role, but requested. Marketplace key confirmed: `karpathy-skills`.
 - `ste-writing` (`thought-stuff/claude-ste`) — ASD-STE100 Simplified Technical English discipline plus a machine-checkable anti-slop linter, for plans/reports/user-facing messages. Marketplace key confirmed: `thought-stuff`.
 - `terragrunt-skill` (`jfr992/terragrunt-skill`) — Terragrunt stacks/units/catalog patterns, CI/CD pipelines, AWS/GCP OIDC, multi-account deployments. Direct hit for the role. Marketplace key confirmed: `jfr992`.
 - `devops-skills` (`akin-ozer/cc-devops-skills`) — bundles 30 generate/validate skills across Ansible, Azure Pipelines, Bash, Dockerfile, Fluent Bit, GitHub Actions, GitLab CI, Helm, Jenkinsfile, Kubernetes YAML + `k8s-debug`, LogQL, Loki config, Makefile, PromQL, Terraform, and Terragrunt. Direct hit for the role — see "DevOps skills" below for when to use each. Marketplace key confirmed: `akin-ozer`.
 - `kubernetes-skill` (`LukasNiessen/kubernetes-skill`) — security/reliability-focused Kubernetes manifest generation and review; diagnoses failure modes (insecure defaults, resource starvation, network exposure, privilege sprawl, fragile rollouts, API drift) before writing YAML. Marketplace key confirmed: `kubernetes-skill`.
-- `grill-with-docs` (`mattpocock/skills`, specifically `skills/engineering/grill-with-docs/SKILL.md`) — requested. **Marketplace key unconfirmed**: this is a multi-skill monorepo, not a single-skill repo like the others here, so it's unclear whether the marketplace registers one plugin per skill subfolder or one plugin for the whole repo. Best-guess install below may need correcting via `/plugin` → Install plugin → pick from list.
+- `grill-with-docs` (`mattpocock/skills`, specifically `skills/engineering/grill-with-docs/SKILL.md`) — requested. Confirmed via the repo's `.claude-plugin/marketplace.json`: the marketplace key is `mattpocock` (not the repo name `skills`), and the whole monorepo installs as one bundled plugin, `mattpocock-skills` - not a separate plugin per skill subfolder.
 
 **Skip / optional, not devsecops-relevant:**
 
@@ -169,7 +164,11 @@ Scoped to the marketplaces listed above only.
 
 **Manual-install skills (not covered by the snippet/ansible/devcontainer automation below):**
 
-A handful of skills ship as bare `SKILL.md` folders, not `.claude-plugin/marketplace.json` marketplaces — `aws-samples/sample-eks-operation-review-skill`, `aws-samples/sample-eks-upgrade-skill`, `aws-samples/sample-apex-skills`, `aws-samples/sample-aws-resilience-skill` (8 skills), and `foxj77/claude-code-skills` (18 skills). Install by cloning into `~/.claude/skills/<name>/`, not `/plugin install` - see the "Manual-install skills" section of `CLAUDE.md` for what each does and when to use it.
+A handful of skills ship as bare `SKILL.md` folders, not `.claude-plugin/marketplace.json` marketplaces — `aws-samples/sample-eks-operation-review-skill`, `aws-samples/sample-eks-upgrade-skill`, `aws-samples/sample-apex-skills`, `aws-samples/sample-aws-resilience-skill` (8 skills), `foxj77/claude-code-skills` (18 skills), `cloudflare/security-audit-skill`, and `petergyang/no-ai-slop` (the latter's `.codex-plugin` wrapper is for Codex, not Claude Code - only its `skills/no-ai-slop/SKILL.md` is usable here). Install by cloning into `~/.claude/skills/<name>/`, not `/plugin install` - see the "Manual-install skills" section of `CLAUDE.md` for what each does and when to use it.
+
+`.devcontainer/scripts/install-manual-skills.sh` clones/sparse-checkouts all of the above (30 skills via git, plus `sample-apex-skills` via its own `npx apex-skills` installer) into `~/.claude/skills/`. Idempotent - re-running updates each one in place. Not wired into `post-start.sh`, so a container start doesn't always pay for ~30 clones; run it by hand when you want them.
+
+**Dropped:** `vercel/find-skills` was removed from this list - the repo doesn't exist (confirmed 404 via `gh api repos/vercel/find-skills`), so it was a dead reference with no working install path.
 
 ### Install + configure snippet
 
@@ -199,18 +198,9 @@ A handful of skills ship as bare `SKILL.md` folders, not `.claude-plugin/marketp
 /plugin marketplace add affaan-m/ECC
 /plugin install ecc@ecc
 
-/plugin marketplace add vercel/find-skills
-/plugin install find-skills@find-skills
-
-/plugin marketplace add cloudflare/security-audit-skill
-/plugin install security-audit-skill@security-audit-skill
-
-# Tier 3 (personal/style) - marketplace key unconfirmed for all three, installs below are best guesses
+# Tier 3 (personal/style) - marketplace key unconfirmed for both, installs below are best guesses
 /plugin marketplace add ayghri/i-have-adhd
 /plugin install i-have-adhd@i-have-adhd
-
-/plugin marketplace add petergyang/no-ai-slop
-/plugin install no-ai-slop@no-ai-slop
 
 /plugin marketplace add dietrichgebert/ponytail
 /plugin install ponytail@ponytail
@@ -224,9 +214,9 @@ A handful of skills ship as bare `SKILL.md` folders, not `.claude-plugin/marketp
 /plugin marketplace add forrestchang/andrej-karpathy-skills
 /plugin install andrej-karpathy-skills@karpathy-skills
 
-# Monorepo of skills, not a single-skill repo like the others - marketplace key unconfirmed
+# Monorepo of skills (grill-with-docs and others), installs as one bundled plugin
 /plugin marketplace add mattpocock/skills
-/plugin install grill-with-docs@skills
+/plugin install mattpocock-skills@mattpocock
 
 /plugin marketplace add thought-stuff/claude-ste
 /plugin install ste-writing@thought-stuff
@@ -252,15 +242,12 @@ Resulting `~/.claude/settings.json` state (reference, `/plugin` writes this for 
 {
   "extraKnownMarketplaces": {
     "ecc": { "source": { "source": "git", "url": "https://github.com/affaan-m/ECC.git" } },
-    "find-skills": { "source": { "source": "github", "repo": "vercel/find-skills" } },
-    "security-audit-skill": { "source": { "source": "github", "repo": "cloudflare/security-audit-skill" } },
     "i-have-adhd": { "source": { "source": "github", "repo": "ayghri/i-have-adhd" } },
-    "no-ai-slop": { "source": { "source": "github", "repo": "petergyang/no-ai-slop" } },
     "ponytail": { "source": { "source": "github", "repo": "dietrichgebert/ponytail" } },
     "caveman": { "source": { "source": "github", "repo": "JuliusBrussee/caveman" } },
     "humanizer": { "source": { "source": "github", "repo": "blader/humanizer" } },
     "karpathy-skills": { "source": { "source": "github", "repo": "forrestchang/andrej-karpathy-skills" } },
-    "skills": { "source": { "source": "github", "repo": "mattpocock/skills" } },
+    "mattpocock": { "source": { "source": "github", "repo": "mattpocock/skills" } },
     "thought-stuff": { "source": { "source": "github", "repo": "thought-stuff/claude-ste" } },
     "jfr992": { "source": { "source": "github", "repo": "jfr992/terragrunt-skill" } },
     "akin-ozer": { "source": { "source": "github", "repo": "akin-ozer/cc-devops-skills" } },
@@ -288,15 +275,12 @@ Resulting `~/.claude/settings.json` state (reference, `/plugin` writes this for 
     "pagerduty@claude-plugins-official": true,
     "vanta@claude-plugins-official": true,
     "ecc@ecc": true,
-    "find-skills@find-skills": true,
-    "security-audit-skill@security-audit-skill": true,
     "i-have-adhd@i-have-adhd": true,
-    "no-ai-slop@no-ai-slop": true,
     "ponytail@ponytail": true,
     "caveman@caveman": true,
     "humanizer@humanizer": true,
     "andrej-karpathy-skills@karpathy-skills": true,
-    "grill-with-docs@skills": true,
+    "mattpocock-skills@mattpocock": true,
     "ste-writing@thought-stuff": true,
     "terragrunt-skill@jfr992": true,
     "devops-skills@akin-ozer": true,
