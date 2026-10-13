@@ -18,9 +18,9 @@ packages:
   - containerd.io
   - docker-buildx-plugin
   - docker-compose-plugin
+  - direnv
   - google-cloud-cli
   - google-cloud-cli-gke-gcloud-auth-plugin
-  - gdebi
   - git
   - gnupg
   - gnupg-agent
@@ -58,14 +58,6 @@ remote_packages: []
 
 remote_executables: []
 
-snaps:
-  normal: []
-  classic: []
-
-flatpaks: []
-  # - com.slack.Slack
-  # - com.jetbrains.PyCharm-Community
-
 pip: []
 
 git_repos: []
@@ -75,60 +67,3 @@ krew_plugins:
   - ns
   - get-all
   - resource-capacity
-
-vscode:
-  extensions:
-    - amazonwebservices.aws-toolkit-vscode
-    - dbcode.dbcode
-    - eamodio.gitlens
-    - editorconfig.editorconfig
-    - esbenp.prettier-vscode
-    - hashicorp.hcl
-    - hashicorp.terraform
-    - googlecloudtools.cloudcode
-    - mineiros.terramate
-    - moshfeu.compare-folders
-    - ms-azuretools.vscode-containers
-    - ms-azuretools.vscode-docker
-    - ms-kubernetes-tools.vscode-kubernetes-tools
-    - ms-python.debugpy
-    - ms-python.python
-    - ms-python.vscode-python-envs
-    - opentofu.vscode-opentofu
-    - pkief.material-icon-theme
-    - qcz.text-power-tools
-    - redhat.vscode-yaml
-  settings: {
-    "editor.codeActionsOnSave": {},
-    "editor.renderWhitespace": "all",
-    "editor.rulers": [
-      80,
-      100,
-      120
-    ],
-    "editor.tabSize": 2,
-    "files.autoSave": "afterDelay",
-    "files.eol": "\n",
-    "files.insertFinalNewline": true,
-    "files.trimFinalNewlines": true,
-    "git.autofetch": "all",
-    "git.confirmSync": false,
-    "terminal.integrated.defaultProfile.linux": "zsh",
-    "terminal.integrated.scrollback": 100000,
-    "workbench.iconTheme": "material-icon-theme",
-    "workbench.tree.indent": 15,
-    "workbench.tree.renderIndentGuides": "always",
-    "workbench.colorCustomizations": {
-        "tree.indentGuidesStroke": "#05ef3c"
-    },
-    "[terraform]": {
-        "editor.defaultFormatter": "hashicorp.terraform",
-        "editor.formatOnSave": true,
-        "editor.formatOnSaveMode": "file"
-    },
-    "[terraform-vars]": {
-        "editor.defaultFormatter": "hashicorp.terraform",
-        "editor.formatOnSave": true,
-        "editor.formatOnSaveMode": "file"
-    }
-  }

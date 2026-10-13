@@ -1,19 +1,35 @@
 repositories:
-  ppa: []
-  url:
-    - "deb https://pkgs.k8s.io/core:/stable:/v1.35/deb/ /"
-    - "deb https://packages.buildkite.com/helm-linux/helm-debian/any/ any main"
-    - "deb https://packages.cloud.google.com/apt cloud-sdk main"
-    - "deb [arch=arm64] https://download.docker.com/linux/ubuntu noble stable"
-  key:
-    - url: "https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key"
-    - url: "https://packages.buildkite.com/helm-linux/helm-debian/gpgkey"
-    - url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
-    - url: "https://download.docker.com/linux/ubuntu/gpg"
+  - name: k8s
+    uris: "https://pkgs.k8s.io/core:/stable:/v1.35/deb/"
+    suites: "/"
+    signed_by: "https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key"
+  - name: helm
+    uris: "https://packages.buildkite.com/helm-linux/helm-debian/any/"
+    suites: any
+    components: main
+    signed_by: "https://packages.buildkite.com/helm-linux/helm-debian/gpgkey"
+  - name: gcloud
+    uris: "https://packages.cloud.google.com/apt"
+    suites: cloud-sdk
+    components: main
+    signed_by: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+  - name: docker
+    uris: "https://download.docker.com/linux/ubuntu"
+    suites: noble
+    components: stable
+    architectures: arm64
+    signed_by: "https://download.docker.com/linux/ubuntu/gpg"
+  - name: claude-code
+    uris: "https://downloads.claude.ai/claude-code/apt/stable"
+    suites: stable
+    components: main
+    signed_by: "https://downloads.claude.ai/keys/claude-code.asc"
+
+ppas: []
 
 remote_executables:
   - name: aws-iam-authenticator
-    url: "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.7.11/aws-iam-authenticator_0.7.11_linux_arm64"
+    url: "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.7.20/aws-iam-authenticator_0.7.20_linux_arm64"
 
 shell:
   - curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash

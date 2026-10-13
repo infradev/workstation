@@ -12,7 +12,7 @@
 
 - name: Inserting itens in .bashrc
   lineinfile:
-    path: ~/.bashrc
+    path: "{{ local_home }}/.bashrc"
     line: "{{ item }}"
   with_items: "{{ bashrc_includes }}"
 
@@ -31,44 +31,34 @@
   with_items: "{{ user_groups }}"
   become: true
 
-- name: Add keys w/ url and id
-  apt_key:
-    url: "{{ item.url }}"
-    id: "{{ item.id }}"
-    state: present
-  with_items: "{{ repositories.key }}"
+- name: Add apt repositories
+  ansible.builtin.deb822_repository:
+    name: "{{ item.name }}"
+    types: deb
+    uris: "{{ item.uris }}"
+    suites: "{{ item.suites }}"
+    components: "{{ item.components | default(omit) }}"
+    architectures: "{{ item.architectures | default(omit) }}"
+    # Fetches the key (URL) and dearmors it into /etc/apt/keyrings/<name>.gpg
+    # itself - no separate get_url + gpg --dearmor dance needed.
+    signed_by: "{{ item.signed_by }}"
+    install_python_debian: true
+  with_items: "{{ repositories }}"
   become: true
-  when: item.url is defined and item.id is defined
-
-- name: Add keys w/ url and no id
-  apt_key:
-    url: "{{ item.url }}"
-    state: present
-  with_items: "{{ repositories.key }}"
-  become: true
-  when: item.url is defined and item.id is undefined
-
-- name: Add keys w/ keyserver and id
-  apt_key:
-    keyserver: "{{ item.keyserver }}"
-    id: "{{ item.id }}"
-    state: present
-  with_items: "{{ repositories.key }}"
-  become: true
-  when: item.keyserver is defined and item.id is defined
 
 - name: Add PPAs
   apt_repository:
     repo: "{{ item }}"
     state: present
-  with_items: "{{ repositories.ppa }}"
+  with_items: "{{ ppas }}"
   become: true
 
-- name: Add additional repos
-  apt_repository:
-    repo: "{{ item }}"
-    state: present
-  with_items: "{{ repositories.url }}"
+# deb822_repository does not refresh the apt cache itself (see module docs),
+# so the newly added repos' packages (docker-ce, kubectl, claude-code, ...)
+# wouldn't be visible to the "Install packages" task below without this.
+- name: Update apt cache after adding repositories
+  apt:
+    update_cache: yes
   become: true
 
 - name: Install packages
@@ -98,37 +88,11 @@
 - name: Install remote executable
   get_url:
     url: "{{ item.url }}"
-    dest: "~/.local/bin/{{ item.name }}"
+    dest: "{{ local_home }}/.local/bin/{{ item.name }}"
     owner: "{{ user_name }}"
     mode: 0755
   with_items: "{{ remote_executables }}"
   when: not item.url.endswith("tar.gz") and not item.url.endswith("tgz") and not item.url.endswith("zip")
-
-# - name: Install snaps
-#   snap:
-#     name: "{{ snaps.normal }}"
-#     state: present
-#   become: true
-
-# - name: Install snaps with option --classic
-#   snap:
-#     name: "{{ snaps.classic }}"
-#     classic: true
-#     state: present
-#   become: true
-
-# - name: Add the flathub flatpak remote to the system installation
-#   community.general.flatpak_remote:
-#     name: flathub
-#     state: present
-#     flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
-#   become: true
-
-# - name: Install flatpaks
-#   community.general.flatpak:
-#     name: "{{ item }}"
-#     state: present
-#   with_items: "{{ flatpaks }}"
 
 - name: Run a command
   shell: "{{ item }}"
@@ -142,7 +106,7 @@
 - name: Checkout git repos
   git:
     repo: "{{ item.repo }}"
-    dest: "~/{{ item.name }}"
+    dest: "{{ local_home }}/{{ item.name }}"
     update: no
   with_items: "{{ git_repos }}"
   ignore_errors: yes
@@ -155,9 +119,12 @@
   with_items: "{{ krew_plugins }}"
   when: krew_plugins is defined
 
-# - name: Install VSCode Extensions
-#   command: "antigravity --install-extension {{ item }} --force"
-#   with_items: "{{ vscode.extensions }}"
+# No automated VSCode/Cursor extension install here: this host is a headless
+# SSH remote target. Cursor's remote-server extension host is installed by the
+# client on first connect, not present ahead of time, so there's no reliable
+# binary/path to drive from ansible. Recommended extensions are instead listed
+# in the home.code-workspace file (see base role) so Cursor Remote-SSH offers
+# them on open.
 
 - name: Remove useless packages from the cache
   apt:
