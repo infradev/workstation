@@ -190,7 +190,7 @@
         },
         "terraform.languageServer": {
           "enabled": true,
-          "args": []
+          "args": ["serve"]
         },
         "terraform.experimentalFeatures.validateOnSave": true,
 
