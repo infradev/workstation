@@ -6,7 +6,8 @@
   become_method: sudo
   vars:
     user_name: "{{ lookup('env', 'USER') }}"
-    local_home: "{{ lookup('env', 'HOME') }}"
+    group_name: "{{ lookup('env', 'USER') }}"
+    local_home: "{{ ansible_env.HOME | default(lookup('env', 'HOME')) }}"
     bin_path: "{{ local_home }}/.local/bin"
     data_dir: "{{ local_home }}/.local/share"
     os_family: "{{ ansible_os_family | lower }}"
@@ -19,3 +20,8 @@
       when: ansible_facts['os_family'] == 'Debian'
     - role: macos
       when: ansible_facts['os_family'] == 'Darwin'
+    # Second pass over base, run last: installing Claude Code plugins needs
+    # the `claude` binary debian/macos just installed, so it can't happen in
+    # base's first pass (which runs before either of them).
+    - role: base
+      tasks_from: finalize

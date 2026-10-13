@@ -27,48 +27,32 @@
 
 - name: Ensure directory exists
   file:
-    path: "{{ item }}"
+    path: "{{ local_home }}/{{ item }}"
     state: directory
     owner: "{{ user_name }}"
     recurse: yes
   with_items:
     - "{{ directories }}"
 
-- name: Ensure file exists
+- name: Ensure plain files exist
   file:
-    path: "{{ item }}"
+    path: "{{ local_home }}/{{ item.path }}"
     state: touch
-  with_items:
-    - "{{ files }}"
+  loop: "{{ files }}"
+  when: item.template is not defined
 
-- name: Write root scripts
+- name: Write templated files
   template:
-    src: "{{ item }}.j2"
-    dest: "~/.{{ item }}"
-    force: yes
-    mode: 0755
-  with_items: "{{ scripts.root }}"
-
-- name: Ensure scripts directories exist
-  file:
-    path: "~/{{ item.dir }}"
-    state: directory
-    owner: "{{ user_name }}"
-    recurse: yes
-  with_items:
-    - "{{ scripts.specific }}"
-
-- name: Write specific scripts
-  template:
-    src: "{{ item.file }}.j2"
-    dest: "~/{{ item.dir }}/{{ item.file }}"
-    force: yes
-    mode: 0755
-  with_items: "{{ scripts.specific }}"
+    src: "{{ item.template }}"
+    dest: "{{ local_home }}/{{ item.path }}"
+    force: "{{ item.force | default(true) }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop: "{{ files }}"
+  when: item.template is defined
 
 - name: Inserting itens in .bashrc
   lineinfile:
-    path: ~/.bashrc
+    path: "{{ local_home }}/.bashrc"
     line: "{{ item }}"
   with_items: "{{ bashrc_includes }}"
 
@@ -107,7 +91,7 @@
 - name: Checkout git repos
   git:
     repo: "{{ item.repo }}"
-    dest: "~/{{ item.name }}"
+    dest: "{{ local_home }}/{{ item.name }}"
     update: no
   with_items: "{{ git_repos }}"
   ignore_errors: yes
@@ -115,7 +99,7 @@
 - name: Checkout repos
   git:
     repo: "{{ item.repo }}"
-    dest: "~/{{ item.name }}"
+    dest: "{{ local_home }}/{{ item.name }}"
     version: "{{ item.version }}"
     update: yes
   with_items: "{{ repos }}"

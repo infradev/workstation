@@ -1,0 +1,18 @@
+---
+
+# Invoked a second time as `{ role: base, tasks_from: finalize }` at the end
+# of ansible.yml's roles list, after debian/macos have installed the
+# claude-code package/cask - the `claude` binary must already exist on PATH
+# for these to do anything.
+
+- name: Add Claude Code plugin marketplaces
+  command: "claude plugin marketplace add {{ item }}"
+  loop: "{{ claude.marketplaces }}"
+  changed_when: true
+  ignore_errors: yes
+
+- name: Install Claude Code plugins
+  command: "claude plugin install {{ item }}"
+  loop: "{{ claude.plugins }}"
+  changed_when: true
+  ignore_errors: yes

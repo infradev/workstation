@@ -51,12 +51,22 @@ export LDFLAGS="-L$(brew --prefix openssl)/lib"
 {% else %}
 {% endif %}
 
+# tenv (resolves Terraform/Terragrunt/Terramate/OpenTofu per project, downloads
+# any version a repo pins but isn't installed yet)
+export TENV_ROOT="$HOME/.local/share/tenv"
+export TENV_AUTO_INSTALL=true
+
+# direnv (per-directory .envrc loading; global config at ~/.config/direnv/direnvrc)
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
+
 # krew
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
-# mysql & pg clients
-export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
-export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+{% if ansible_system == "Darwin" %}
+# mysql & pg clients (keg-only homebrew formulae, not symlinked onto PATH)
+export PATH="${LOCAL_BIN}/opt/mysql-client/bin:$PATH"
+export PATH="${LOCAL_BIN}/opt/libpq/bin:$PATH"
+{% endif %}
 
 # history size
 export HISTFILESIZE=1000000
