@@ -1,0 +1,6 @@
+{% for plugin in tflint_plugins %}
+plugin "{{ plugin.plugin }}" {
+  enabled = true
+}
+
+{% endfor %}

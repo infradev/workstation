@@ -1,0 +1,172 @@
+---
+
+- name: Include vars
+  include_vars:
+    file: "{{ architecture }}-{{ distribution_major_version }}.yml"
+
+- name: Ensure groups exist
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ user_groups }}"
+  become: true
+
+- name: adding existing user '{{ user_name }}' to groups
+  user:
+    name: "{{ user_name }}"
+    groups: "{{ item }}"
+    append: yes
+  with_items: "{{ user_groups }}"
+  become: true
+
+# Full upgrade is for the SSH machine. The devcontainer image is already
+# built; postCreateCommand runs this role with --skip-tags host.
+- name: Update all packages to the latest version
+  apt:
+    update_cache: yes
+    upgrade: yes
+  become: true
+  tags: [host]
+
+- name: Add apt repositories
+  ansible.builtin.deb822_repository:
+    name: "{{ item.name }}"
+    types: deb
+    uris: "{{ item.uris }}"
+    suites: "{{ item.suites }}"
+    components: "{{ item.components | default(omit) }}"
+    architectures: "{{ item.architectures | default(omit) }}"
+    # Fetches the key (URL) and dearmors it into /etc/apt/keyrings/<name>.gpg
+    # itself - no separate get_url + gpg --dearmor dance needed.
+    signed_by: "{{ item.signed_by }}"
+    install_python_debian: true
+  loop: "{{ repositories | rejectattr('name', 'equalto', 'docker') | list }}"
+  become: true
+
+# docker-ce is a host package. Docker-in-Docker already ships this URI with
+# a different Signed-By, and apt refuses two values for the same source.
+- name: Add the Docker apt repository
+  ansible.builtin.deb822_repository:
+    name: "{{ item.name }}"
+    types: deb
+    uris: "{{ item.uris }}"
+    suites: "{{ item.suites }}"
+    components: "{{ item.components | default(omit) }}"
+    architectures: "{{ item.architectures | default(omit) }}"
+    signed_by: "{{ item.signed_by }}"
+    install_python_debian: true
+  loop: "{{ repositories | selectattr('name', 'equalto', 'docker') | list }}"
+  become: true
+  tags: [host]
+
+- name: Check for the Docker-in-Docker signing key
+  ansible.builtin.stat:
+    path: /usr/share/keyrings/docker-archive-keyring.gpg
+  register: docker_feature_key
+
+- name: Remove the Ansible Docker source when Docker-in-Docker already added one
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/docker.sources
+    state: absent
+  become: true
+  when: docker_feature_key.stat.exists
+
+# deb822_repository does not refresh the apt cache itself (see module docs),
+# so the newly added repos' packages (docker-ce, kubectl, claude-code, ...)
+# wouldn't be visible to the "Install packages" task below without this.
+- name: Update apt cache after adding repositories
+  apt:
+    update_cache: yes
+  become: true
+
+- name: Install packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+  become: true
+
+- name: Install host-only packages
+  apt:
+    name: "{{ host_packages }}"
+    state: present
+  become: true
+  tags: [host]
+  when: host_packages | length > 0
+
+- name: Install remote packages
+  apt:
+    deb: "{{ item }}"
+  with_items: "{{ remote_packages }}"
+  become: true
+
+- include_tasks: tarexe.yml
+  with_items: "{{ remote_executables }}"
+  when: item.url.endswith("tar.gz") or item.url.endswith("tgz")
+
+- name: Unpack archives
+  ansible.builtin.unarchive:
+    src: "{{ item.url }}"
+    dest: "{{ item.dest }}"
+    remote_src: true
+    extra_opts: "{{ item.extra_opts | default(omit) }}"
+    creates: "{{ item.creates | default(omit) }}"
+  loop: "{{ archives }}"
+
+- name: Uncompress zip archives
+  ansible.builtin.unarchive:
+    src: "{{ item.url }}"
+    dest: "{{ item.dest | default(bin_path) }}"
+    remote_src: true
+  loop: "{{ remote_executables + tflint_plugins }}"
+  when: item.url is defined and item.url.endswith('.zip')
+
+- name: Write tflint plugin config
+  ansible.builtin.template:
+    src: tflint.hcl.j2
+    dest: "{{ local_home }}/.tflint.hcl"
+    force: false
+    mode: "0644"
+  when: tflint_plugins | length > 0
+
+- name: Run commands
+  ansible.builtin.shell:
+    cmd: "{{ item.cmd }}"
+  args:
+    creates: "{{ item.creates | default(omit) }}"
+  environment: "{{ command_env }}"
+  loop: "{{ commands }}"
+
+- name: Install remote executable
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ local_home }}/.local/bin/{{ item.name }}"
+    owner: "{{ user_name }}"
+    mode: 0755
+  with_items: "{{ remote_executables }}"
+  when: not item.url.endswith("tar.gz") and not item.url.endswith("tgz") and not item.url.endswith("zip")
+
+- name: Install pip python package
+  pip:
+    name: "{{ item }}"
+  with_items: "{{ pip }}"
+
+- name: Install pipx applications
+  community.general.pipx:
+    name: "{{ item }}"
+    state: present
+    global: true
+  loop: "{{ pipx_packages }}"
+  become: true
+
+# Cursor extensions are installed on the Mac by the macos role. This host
+# does not run cursor --install-extension.
+
+- name: Remove useless packages from the cache
+  apt:
+    autoclean: true
+  become: true
+
+- name: Remove dependencies that are no longer required
+  apt:
+    autoremove: true
+  become: true

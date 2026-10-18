@@ -1,0 +1,202 @@
+user_groups:
+  - docker
+  - sudo
+
+packages:
+  - apt-transport-https
+  - azure-cli
+  - bash-completion
+  - build-essential
+  - ca-certificates
+  - claude-code
+  - curl
+  - direnv
+  - gh
+  - git
+  - gnupg
+  - gnupg-agent
+  - golang
+  - google-cloud-cli
+  - google-cloud-cli-gke-gcloud-auth-plugin
+  - gpg
+  - graphviz
+  - helm
+  - htop
+  - httpie
+  - jq
+  - kubectl
+  - llvm
+  - make
+  - mysql-client
+  - nmap
+  - npm
+  - p7zip-full
+  - pipx
+  - postgresql-client
+  - pv
+  - python3
+  - python3-pip
+  - python3-venv
+  - software-properties-common
+  - telnet
+  - "tenv={{ tool_versions.tenv }}"
+  - traceroute
+  - unzip
+  - vim
+  - wget
+  - xz-utils
+  - zip
+
+# SSH-host only. The devcontainer runs this role with --skip-tags host:
+# Docker-in-Docker already provides the engine, and OpenSSH/certbot do not
+# belong in the container.
+host_packages:
+  - certbot
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-ce
+  - docker-ce-cli
+  - docker-compose-plugin
+  - openssh-server
+  - python3-certbot-apache
+  - python3-certbot-nginx
+
+# Architecture fragments. Templated when the download lists below are used.
+deb_arch: "{{ 'amd64' if ansible_facts['architecture'] == 'x86_64' else 'arm64' }}"
+gnu_arch: "{{ 'x86_64' if ansible_facts['architecture'] == 'x86_64' else 'arm64' }}"
+trivy_arch: "{{ '64bit' if ansible_facts['architecture'] == 'x86_64' else 'ARM64' }}"
+rtk_target: "{{ 'x86_64-unknown-linux-musl' if ansible_facts['architecture'] == 'x86_64' else 'aarch64-unknown-linux-gnu' }}"
+uv_target: "{{ 'x86_64-unknown-linux-gnu' if ansible_facts['architecture'] == 'x86_64' else 'aarch64-unknown-linux-gnu' }}"
+
+remote_packages:
+  - "https://gitlab.com/gitlab-org/cli/-/releases/v{{ tool_versions.glab }}/downloads/glab_{{ tool_versions.glab }}_linux_{{ deb_arch }}.deb"
+  - "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/{{ 'ubuntu_64bit' if ansible_facts['architecture'] == 'x86_64' else 'ubuntu_arm64' }}/session-manager-plugin.deb"
+
+# Raw binaries and archives installed by the existing get_url, unarchive, and
+# tarexe tasks.
+remote_executables:
+  - name: argocd
+    url: "https://github.com/argoproj/argo-cd/releases/download/v{{ tool_versions.argocd }}/argocd-linux-{{ deb_arch }}"
+  - name: aws-iam-authenticator
+    url: "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v{{ tool_versions.aws_iam_authenticator }}/aws-iam-authenticator_{{ tool_versions.aws_iam_authenticator }}_linux_{{ deb_arch }}"
+  - name: hadolint
+    url: "https://github.com/hadolint/hadolint/releases/download/v{{ tool_versions.hadolint }}/hadolint-linux-{{ gnu_arch }}"
+  - name: helmfile
+    url: "https://github.com/helmfile/helmfile/releases/download/v{{ tool_versions.helmfile }}/helmfile_{{ tool_versions.helmfile }}_linux_{{ deb_arch }}.tar.gz"
+  - name: infracost
+    url: "https://github.com/infracost/infracost/releases/download/v{{ tool_versions.infracost }}/infracost-linux-{{ deb_arch }}.tar.gz"
+    archive_src: "infracost-linux-{{ deb_arch }}"
+  - name: k9s
+    url: "https://github.com/derailed/k9s/releases/download/v{{ tool_versions.k9s }}/k9s_Linux_{{ deb_arch }}.tar.gz"
+  - name: kind
+    url: "https://github.com/kubernetes-sigs/kind/releases/download/v{{ tool_versions.kind }}/kind-linux-{{ deb_arch }}"
+  - name: kubectx
+    url: "https://github.com/ahmetb/kubectx/releases/download/v{{ tool_versions.kubectx }}/kubectx_v{{ tool_versions.kubectx }}_linux_{{ gnu_arch }}.tar.gz"
+  - name: kubens
+    url: "https://github.com/ahmetb/kubectx/releases/download/v{{ tool_versions.kubectx }}/kubens_v{{ tool_versions.kubectx }}_linux_{{ gnu_arch }}.tar.gz"
+  - name: rtk
+    url: "https://github.com/rtk-ai/rtk/releases/download/v{{ tool_versions.rtk }}/rtk-{{ rtk_target }}.tar.gz"
+  - name: sops
+    url: "https://github.com/getsops/sops/releases/download/v{{ tool_versions.sops }}/sops-v{{ tool_versions.sops }}.linux.{{ deb_arch }}"
+  - name: stern
+    url: "https://github.com/stern/stern/releases/download/v{{ tool_versions.stern }}/stern_{{ tool_versions.stern }}_linux_{{ deb_arch }}.tar.gz"
+  - name: terraform-docs
+    url: "https://github.com/terraform-docs/terraform-docs/releases/download/v{{ tool_versions.terraform_docs }}/terraform-docs-v{{ tool_versions.terraform_docs }}-linux-{{ deb_arch }}.tar.gz"
+  - name: terrascan
+    url: "https://github.com/tenable/terrascan/releases/download/v{{ tool_versions.terrascan }}/terrascan_{{ tool_versions.terrascan }}_Linux_{{ gnu_arch }}.tar.gz"
+  - name: tflint
+    url: "https://github.com/terraform-linters/tflint/releases/download/v{{ tool_versions.tflint }}/tflint_linux_{{ deb_arch }}.zip"
+  - name: tfsec
+    url: "https://github.com/aquasecurity/tfsec/releases/download/v{{ tool_versions.tfsec }}/tfsec-linux-{{ deb_arch }}"
+  - name: trivy
+    url: "https://github.com/aquasecurity/trivy/releases/download/v{{ tool_versions.trivy }}/trivy_{{ tool_versions.trivy }}_Linux-{{ trivy_arch }}.tar.gz"
+  - name: uv
+    url: "https://github.com/astral-sh/uv/releases/download/{{ tool_versions.uv }}/uv-{{ uv_target }}.tar.gz"
+    binaries:
+      - src: "uv-{{ uv_target }}/uv"
+        dest: uv
+      - src: "uv-{{ uv_target }}/uvx"
+        dest: uvx
+  - name: yq
+    url: "https://github.com/mikefarah/yq/releases/download/v{{ tool_versions.yq }}/yq_linux_{{ deb_arch }}"
+
+pip: []
+
+pipx_packages:
+  - "checkov=={{ tool_versions.checkov }}"
+  - pre-commit
+
+tflint_plugins:
+  - name: tflint-ruleset-aws
+    plugin: aws
+    url: "https://github.com/terraform-linters/tflint-ruleset-aws/releases/download/v{{ tool_versions.tflint_aws_ruleset }}/tflint-ruleset-aws_linux_{{ deb_arch }}.zip"
+    dest: "{{ local_home }}/.tflint.d/plugins"
+  - name: tflint-ruleset-azurerm
+    plugin: azurerm
+    url: "https://github.com/terraform-linters/tflint-ruleset-azurerm/releases/download/v{{ tool_versions.tflint_azure_ruleset }}/tflint-ruleset-azurerm_linux_{{ deb_arch }}.zip"
+    dest: "{{ local_home }}/.tflint.d/plugins"
+  - name: tflint-ruleset-google
+    plugin: google
+    url: "https://github.com/terraform-linters/tflint-ruleset-google/releases/download/v{{ tool_versions.tflint_gcp_ruleset }}/tflint-ruleset-google_linux_{{ deb_arch }}.zip"
+    dest: "{{ local_home }}/.tflint.d/plugins"
+
+tenv_root: "{{ local_home }}/.local/share/tenv"
+
+# TENV_GITHUB_TOKEN is optional. containerEnv passes the host value into the
+# devcontainer; this forwards it into tenv commands when it is set.
+command_env: "{{ {'HOME': local_home, 'TENV_ROOT': tenv_root, 'TENV_AUTO_INSTALL': 'true'} | combine({'TENV_GITHUB_TOKEN': lookup('env', 'TENV_GITHUB_TOKEN')} if lookup('env', 'TENV_GITHUB_TOKEN') else {}) }}"
+
+archives:
+  - url: "https://github.com/kubernetes-sigs/krew/releases/download/v{{ tool_versions.krew }}/krew-linux_{{ deb_arch }}.tar.gz"
+    dest: "{{ local_home }}/.local/krew-install"
+    creates: "{{ local_home }}/.krew/bin/kubectl-krew"
+  - url: "https://github.com/nvm-sh/nvm/archive/refs/tags/v{{ tool_versions.nvm }}.tar.gz"
+    dest: "{{ local_home }}/.nvm"
+    extra_opts:
+      - --strip-components=1
+    creates: "{{ local_home }}/.nvm/nvm.sh"
+
+commands:
+  - cmd: cd "$(mktemp -d)" && curl "https://awscli.amazonaws.com/awscli-exe-linux-{{ ansible_facts['architecture'] }}.zip" -o "awscliv2.zip" && unzip -u awscliv2.zip && sudo ./aws/install --update
+  - cmd: "{{ local_home }}/.local/krew-install/krew-linux_{{ deb_arch }} install krew"
+    creates: "{{ local_home }}/.krew/bin/kubectl-krew"
+  - cmd: "tenv terraform install {{ tool_versions.terraform }}"
+  - cmd: "tenv terraform use {{ tool_versions.terraform }}"
+  - cmd: "tenv terragrunt install {{ tool_versions.terragrunt }}"
+  - cmd: "tenv terragrunt use {{ tool_versions.terragrunt }}"
+  - cmd: "tenv terramate install {{ tool_versions.terramate }}"
+  - cmd: "tenv terramate use {{ tool_versions.terramate }}"
+
+# Tool version pins. The devcontainer image does not install these; postCreate
+# runs this role. TERRATEST_VERSION is not here: Terratest is a Go library,
+# and the golang package is already in the apt list.
+tool_versions:
+  argocd: "3.5.5"
+  aws_iam_authenticator: "0.7.22"
+  checkov: "3.3.29"
+  glab: "1.121.0"
+  hadolint: "2.15.1"
+  helmfile: "1.8.2"
+  infracost: "0.10.46"
+  k9s: "0.51.0"
+  kind: "0.33.0"
+  krew: "0.5.0"
+  kubectx: "0.11.0"
+  nvm: "0.40.8"
+  rtk: "1.0.1"
+  sops: "3.13.3"
+  stern: "1.34.0"
+  tenv: "4.15.1"
+  terraform: "1.16.6"
+  terraform_docs: "0.24.0"
+  terragrunt: "1.1.6"
+  terramate: "0.17.3"
+  terrascan: "1.19.9"
+  tflint: "0.64.0"
+  tflint_aws_ruleset: "0.49.0"
+  tflint_azure_ruleset: "0.32.0"
+  tflint_gcp_ruleset: "0.40.0"
+  tfsec: "1.28.14"
+  trivy: "0.76.0"
+  uv: "0.13.1"
+  yq: "4.54.1"

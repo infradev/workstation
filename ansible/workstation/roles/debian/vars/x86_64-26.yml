@@ -1,0 +1,44 @@
+repositories:
+  - name: azure-cli
+    uris: "https://packages.microsoft.com/repos/azure-cli/"
+    suites: resolute
+    components: main
+    architectures: amd64
+    signed_by: "https://packages.microsoft.com/keys/microsoft.asc"
+  - name: claude-code
+    uris: "https://downloads.claude.ai/claude-code/apt/stable"
+    suites: stable
+    components: main
+    signed_by: "https://downloads.claude.ai/keys/claude-code.asc"
+  - name: docker
+    uris: "https://download.docker.com/linux/ubuntu"
+    suites: resolute
+    components: stable
+    architectures: amd64
+    signed_by: "https://download.docker.com/linux/ubuntu/gpg"
+  - name: gcloud
+    uris: "https://packages.cloud.google.com/apt"
+    suites: cloud-sdk
+    components: main
+    signed_by: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+  - name: github-cli
+    uris: "https://cli.github.com/packages"
+    suites: stable
+    components: main
+    architectures: amd64
+    signed_by: "https://cli.github.com/packages/githubcli-archive-keyring.gpg"
+  - name: helm
+    uris: "https://packages.buildkite.com/helm-linux/helm-debian/any/"
+    suites: any
+    components: main
+    signed_by: "https://packages.buildkite.com/helm-linux/helm-debian/gpgkey"
+  - name: k8s
+    uris: "https://pkgs.k8s.io/core:/stable:/v1.35/deb/"
+    suites: "/"
+    signed_by: "https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key"
+  - name: tenv
+    uris: "https://dl.cloudsmith.io/public/tofuutils/tenv/deb/ubuntu"
+    suites: resolute
+    components: main
+    architectures: amd64
+    signed_by: "https://dl.cloudsmith.io/public/tofuutils/tenv/gpg.8ACD4386ADD982F6.key"

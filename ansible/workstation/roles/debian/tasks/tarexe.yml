@@ -1,0 +1,37 @@
+---
+# Included once per remote_executables entry whose URL ends in tar.gz or tgz.
+# item.binaries is optional: [{src, dest}]. The default installs a top-level
+# member named item.archive_src, or item.name, as ~/.local/bin/item.name.
+
+- name: Reset archive temp directory
+  ansible.builtin.file:
+    path: "/tmp/ansible-bin-{{ item.name }}"
+    state: absent
+
+- name: Create archive temp directory
+  ansible.builtin.file:
+    path: "/tmp/ansible-bin-{{ item.name }}"
+    state: directory
+    mode: "0755"
+
+- name: Unpack tarball
+  ansible.builtin.unarchive:
+    src: "{{ item.url }}"
+    dest: "/tmp/ansible-bin-{{ item.name }}"
+    remote_src: true
+
+- name: Install binaries from tarball
+  ansible.builtin.copy:
+    src: "/tmp/ansible-bin-{{ item.name }}/{{ entry.src }}"
+    dest: "{{ bin_path }}/{{ entry.dest }}"
+    remote_src: true
+    mode: "0755"
+    owner: "{{ user_name }}"
+  loop: "{{ item.binaries | default([{'src': item.archive_src | default(item.name), 'dest': item.name}]) }}"
+  loop_control:
+    loop_var: entry
+
+- name: Remove archive temp directory
+  ansible.builtin.file:
+    path: "/tmp/ansible-bin-{{ item.name }}"
+    state: absent
