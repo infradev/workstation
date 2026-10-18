@@ -1,0 +1,18 @@
+# EditorConfig: http://EditorConfig.org
+# Matches the vscode settings shipped by ansible/workstation (editor.tabSize: 2,
+# files.eol: "\n", files.insertFinalNewline: true, files.trimFinalNewlines: true).
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[Makefile]
+indent_style = tab
+
+[*.md]
+trim_trailing_whitespace = false
