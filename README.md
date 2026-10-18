@@ -109,6 +109,8 @@ The `base` role writes these under `$HOME`:
 
 Git commits use `Alexandre Souza` / `alexandre@infradev.com.br`. The base role writes that into `~/.gitconfig`. The image build writes it again from `.devcontainer/.env`. Change both places together. The role also sets `core.editor` to `vim` and clones `https://github.com/infradev/workstation.git` into `~/projects/infradev/workstation` (`update: no`, errors ignored). A copied devcontainer downloads that same public `main` tree in `post-create` when the project does not contain the playbook, then removes `.git`.
 
+Finalize in the base role turns off agent signatures in the user config, on the host and in the container. `~/.claude/settings.json` gets `includeCoAuthoredBy` set to false. `~/.cursor/cli-config.json` gets `attributeCommitsToAgent` and `attributePRsToAgent` set to false. Other keys in those files stay.
+
 These variables are set in `.bash_profile` and, in the container, in `containerEnv`:
 
 | Variable | Value |

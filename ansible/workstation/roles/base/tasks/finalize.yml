@@ -3,6 +3,80 @@
 # Runs after the OS role, via import_role in ansible.yml. claude, gh, and
 # on a Mac cursor-agent are already on PATH.
 
+- name: Ensure Claude and Cursor user config files exist
+  ansible.builtin.copy:
+    dest: "{{ item.dest }}"
+    content: "{{ item.content }}"
+    force: false
+    mode: "0600"
+  loop:
+    - dest: "{{ local_home }}/.claude/settings.json"
+      content: |
+        {
+          "includeCoAuthoredBy": false
+        }
+    - dest: "{{ local_home }}/.cursor/cli-config.json"
+      content: |
+        {
+          "attribution": {
+            "attributeCommitsToAgent": false,
+            "attributePRsToAgent": false
+          }
+        }
+
+- name: Fill an empty Claude settings file
+  ansible.builtin.replace:
+    path: "{{ local_home }}/.claude/settings.json"
+    regexp: '(?s)\A\s*\{\s*\}\s*\Z'
+    replace: |
+      {
+        "includeCoAuthoredBy": false
+      }
+
+- name: Fill an empty Cursor CLI config
+  ansible.builtin.replace:
+    path: "{{ local_home }}/.cursor/cli-config.json"
+    regexp: '(?s)\A\s*\{\s*\}\s*\Z'
+    replace: |
+      {
+        "attribution": {
+          "attributeCommitsToAgent": false,
+          "attributePRsToAgent": false
+        }
+      }
+
+- name: Turn off agent signature flags
+  ansible.builtin.replace:
+    path: "{{ item.path }}"
+    regexp: '("{{ item.key }}"\s*:\s*)true\b'
+    replace: '\1false'
+  loop:
+    - path: "{{ local_home }}/.claude/settings.json"
+      key: includeCoAuthoredBy
+    - path: "{{ local_home }}/.cursor/cli-config.json"
+      key: attributeCommitsToAgent
+    - path: "{{ local_home }}/.cursor/cli-config.json"
+      key: attributePRsToAgent
+
+- name: Add includeCoAuthoredBy when Claude settings omit it
+  ansible.builtin.replace:
+    path: "{{ local_home }}/.claude/settings.json"
+    regexp: '(?s)\A\{(?!.*?"includeCoAuthoredBy")\n'
+    replace: |
+      {
+        "includeCoAuthoredBy": false,
+
+- name: Add Cursor attribution when the CLI config omits it
+  ansible.builtin.replace:
+    path: "{{ local_home }}/.cursor/cli-config.json"
+    regexp: '(?s)\A\{(?!.*?"attributeCommitsToAgent")\n'
+    replace: |
+      {
+        "attribution": {
+          "attributeCommitsToAgent": false,
+          "attributePRsToAgent": false
+        },
+
 - name: Add Claude Code plugin marketplaces
   ansible.builtin.command: "claude plugin marketplace add {{ item }}"
   loop: "{{ ai.marketplaces }}"
