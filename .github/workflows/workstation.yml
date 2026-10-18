@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-26.04-arm
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.ACT != 'true'
       - name: Install Ansible
         run: |
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-26.04-arm
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.ACT != 'true'
       - name: Check devcontainer settings
         run: bash tests/check_settings.sh
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-26.04-arm
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.ACT != 'true'
       - name: Build the image
         run: |
