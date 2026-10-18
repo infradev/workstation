@@ -1,0 +1,203 @@
+{
+  "name": "Terraform Development Environment",
+
+  // Build args and sibling services live in compose.yaml. Version pins
+  // are in .env, which Compose loads from this directory. kind is installed
+  // by the kind feature below; it creates clusters through Docker-in-Docker,
+  // not as a Compose service.
+  "dockerComposeFile": "compose.yaml",
+  "service": "dev",
+  "workspaceFolder": "/workspaces/project",
+  "shutdownAction": "stopCompose",
+  "overrideCommand": true,
+  // The .devcontainer/.creds/* directories are pre-created and committed
+  // (gitignored contents, tracked skeleton via .gitkeep) rather than mkdir'd
+  // here - see "Dev Container credentials" in README.md.
+  // Git doesn't preserve directory permission bits across a clone though, so
+  // the ssh dir's 700 still needs fixing up at init time.
+  "initializeCommand": "chmod 700 ${localWorkspaceFolder}/.devcontainer/.creds/ssh",
+
+  "postCreateCommand": "post-create",
+  "postStartCommand": "post-start",
+  "remoteUser": "alex",
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      // Add the IDs of extensions you want installed when the container is created
+      "extensions": [
+        "amazonwebservices.aws-toolkit-vscode",
+        "anthropic.claude-code",
+        "davidanson.vscode-markdownlint",
+        "dbcode.dbcode",
+        "donjayamanne.githistory",
+        "eamodio.gitlens",
+        "editorconfig.editorconfig",
+        "esbenp.prettier-vscode",
+        "hashicorp.hcl",
+        "hashicorp.terraform",
+        "mhutchie.git-graph",
+        "mineiros.terramate",
+        "moshfeu.compare-folders",
+        "ms-azuretools.vscode-containers",
+        "ms-azuretools.vscode-docker",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-python.debugpy",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.vscode-python-envs",
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode-remote.remote-ssh",
+        "opentofu.vscode-opentofu",
+        "pkief.material-icon-theme",
+        "qcz.text-power-tools",
+        "redhat.vscode-yaml",
+        "streetsidesoftware.code-spell-checker",
+        "timonwong.shellcheck",
+        "yzhang.markdown-all-in-one"
+      ],
+
+      // Set *default* container specific settings.json values on container create
+      "settings": {
+        // Editor settings
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": false,
+        "editor.formatOnType": false,
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.renderWhitespace": "all",
+        "editor.rulers": [
+          80,
+          100,
+          120
+        ],
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit"
+        },
+
+        // Files settings
+        "files.autoSave": "afterDelay",
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true,
+        "files.exclude": {
+          "**/.git": true,
+          "**/.DS_Store": true,
+          "**/*.tfstate": true,
+          "**/*.tfstate.*": true,
+          "**/.terraform": true,
+          ".terraform.lock.hcl": true
+        },
+
+        // Git settings
+        "git.autofetch": "all",
+        "git.enableSmartCommit": true,
+        "git.confirmSync": false,
+
+        // Terminal settings
+        "terminal.integrated.scrollback": 100000,
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          }
+        },
+
+        // UI settings
+        "workbench.iconTheme": "material-icon-theme",
+        "workbench.tree.indent": 15,
+        "workbench.tree.renderIndentGuides": "always",
+        "workbench.colorCustomizations": {
+          "tree.indentGuidesStroke": "#05ef3c"
+        },
+        "window.autoDetectColorScheme": false,
+
+        // Spell checker settings
+        "cSpell.enabled": true,
+        "cSpell.words": [
+          "aquasecurity",
+          "azurerm",
+          "checkov",
+          "devcontainer",
+          "gcloud",
+          "hadolint",
+          "helmfile",
+          "infracost",
+          "k9s",
+          "krew",
+          "kubeconfig",
+          "kubectx",
+          "kubens",
+          "nvm",
+          "pipx",
+          "postgresql",
+          "sops",
+          "tenv",
+          "terragrunt",
+          "terramate",
+          "terrascan",
+          "tflint",
+          "tfsec",
+          "tofu",
+          "trivy"
+        ],
+
+        // Terraform settings
+        "[terraform]": {
+          "editor.defaultFormatter": "hashicorp.terraform",
+          "editor.formatOnSave": true,
+          "editor.tabSize": 2
+        },
+        "[terraform-vars]": {
+          "editor.defaultFormatter": "hashicorp.terraform",
+          "editor.formatOnSave": true,
+          "editor.tabSize": 2
+        },
+        "terraform.languageServer": {
+          "enabled": true,
+          "args": ["serve"]
+        },
+        "terraform.experimentalFeatures.validateOnSave": true,
+
+        // YAML settings
+        "[yaml]": {
+          "editor.defaultFormatter": "redhat.vscode-yaml",
+          "editor.formatOnSave": true,
+          "editor.tabSize": 2
+        },
+
+        // Markdown settings
+        "[markdown]": {
+          "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+          "editor.formatOnSave": true
+        }
+      }
+    }
+  },
+
+  // Docker-in-Docker is the one feature Ansible cannot replace: it starts
+  // dockerd inside this container. kubectl, Helm, helmfile, kind, sops, git,
+  // gh, Node, Claude Code, and the apt clients are installed by the playbook.
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "moby": false
+    }
+  },
+
+  // Environment variables
+  "containerEnv": {
+    "TF_PLUGIN_CACHE_DIR": "/home/alex/.terraform.d/plugin-cache",
+    "CLAUDE_CONFIG_DIR": "/home/alex/.claude",
+
+    // tenv resolves Terraform/Terragrunt/Terramate/OpenTofu per project and
+    // downloads any version a repo pins but the image does not carry.
+    "TENV_ROOT": "/home/alex/.local/share/tenv",
+    "TENV_AUTO_INSTALL": "true",
+
+    // Authenticates tenv's own GitHub API lookups (Terragrunt/Terramate/
+    // OpenTofu version resolution) at runtime; unset just falls back to
+    // unauthenticated, rate-limited lookups.
+    "TENV_GITHUB_TOKEN": "${localEnv:TENV_GITHUB_TOKEN}"
+  }
+}
