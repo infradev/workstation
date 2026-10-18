@@ -1,0 +1,2 @@
+-P ubuntu-26.04-arm=catthehacker/ubuntu:act-latest
+--bind

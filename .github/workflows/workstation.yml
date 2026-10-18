@@ -1,0 +1,87 @@
+# Build the devcontainer image, provision it with the Linux Ansible playbook,
+# and check the tools and settings that result. Independent jobs start together.
+#
+# Local run (reads .actrc). Jobs without needs start together:
+#   gh act -s GITHUB_TOKEN="$(gh auth token)"
+name: workstation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ansible:
+    runs-on: ubuntu-26.04-arm
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        if: env.ACT != 'true'
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible-core
+          ansible-galaxy collection install community.general
+      - name: Syntax-check the playbook
+        working-directory: ansible/workstation
+        run: ansible-playbook -i inventory ansible.yml --syntax-check
+      - name: List tasks without running them
+        working-directory: ansible/workstation
+        run: ansible-playbook -i inventory ansible.yml --list-tasks
+      - name: Check Linux role vars
+        run: bash tests/check_ansible_vars.sh
+
+  settings:
+    runs-on: ubuntu-26.04-arm
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        if: env.ACT != 'true'
+      - name: Check devcontainer settings
+        run: bash tests/check_settings.sh
+
+  devcontainer:
+    runs-on: ubuntu-26.04-arm
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        if: env.ACT != 'true'
+      - name: Build the image
+        run: |
+          env_file=.devcontainer/.env
+          env_value() { grep -E "^${1}=" "${env_file}" | head -n 1 | cut -d= -f2-; }
+          docker build \
+            --file .devcontainer/Dockerfile \
+            --build-arg "VARIANT=$(env_value VARIANT)" \
+            --build-arg "GIT_USER_NAME=$(env_value GIT_USER_NAME)" \
+            --build-arg "GIT_USER_EMAIL=$(env_value GIT_USER_EMAIL)" \
+            --tag workstation-dev:test \
+            .devcontainer
+      - name: Check image settings
+        run: |
+          docker run --rm \
+            --volume "${GITHUB_WORKSPACE}:/workspaces/workstation:ro" \
+            --workdir /workspaces/workstation \
+            --env USER=alex \
+            --env HOME=/home/alex \
+            workstation-dev:test \
+            bash tests/verify_image.sh
+      - name: Provision with Linux Ansible and check tools
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker run --rm \
+            --volume "${GITHUB_WORKSPACE}:/workspaces/workstation" \
+            --workdir /workspaces/workstation \
+            --env USER=alex \
+            --env HOME=/home/alex \
+            --env GH_TOKEN \
+            --env CLAUDE_CONFIG_DIR=/home/alex/.claude \
+            --env TF_PLUGIN_CACHE_DIR=/home/alex/.terraform.d/plugin-cache \
+            --env TENV_ROOT=/home/alex/.local/share/tenv \
+            --env TENV_AUTO_INSTALL=true \
+            workstation-dev:test \
+            bash -c 'post-create && bash tests/verify_provision.sh'
