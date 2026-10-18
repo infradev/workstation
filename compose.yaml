@@ -1,0 +1,96 @@
+# The dev service is the only one started by default. Tenant sidecars below
+# are commented examples from the local Kubernetes distribution comparison:
+# uncomment the ones this project needs, then rebuild the devcontainer.
+# kind is not a service here. The devcontainer feature installs the kind CLI,
+# and `kind create cluster` uses the Docker daemon inside this container.
+# k3d is the lighter local-cluster alternative from that comparison; it is
+# not installed.
+# Volume paths are relative to this file. Cursor does not export
+# localWorkspaceFolder into `docker compose config`.
+name: workstation
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VARIANT: ${VARIANT}
+        GIT_USER_NAME: ${GIT_USER_NAME}
+        GIT_USER_EMAIL: ${GIT_USER_EMAIL}
+    # Docker-in-Docker needs a privileged container. The name and hostname
+    # follow the project directory so the shell prompt matches the project.
+    privileged: true
+    init: true
+    command: sleep infinity
+    container_name: ${COMPOSE_PROJECT_NAME}
+    hostname: ${COMPOSE_PROJECT_NAME}
+    volumes:
+      - ..:/workspaces/project:cached
+      - ./.creds/aws:/home/alex/.aws:cached
+      - ./.creds/azure:/home/alex/.azure:cached
+      - ./.creds/claude:/home/alex/.claude:cached
+      - ./.creds/gcloud:/home/alex/.config/gcloud:cached
+      - ./.creds/glab-cli:/home/alex/.config/glab-cli:cached
+      - ./.creds/kube:/home/alex/.kube:cached
+      - ./.creds/ssh:/home/alex/.ssh:cached
+      # terraform login rewrites credentials.tfrc.json via rename, which a
+      # single-file bind rejects, so the whole directory is mounted. The
+      # plugin-cache volume is nested inside it.
+      - ./.creds/terraform.d:/home/alex/.terraform.d:cached
+      - terraform-cache:/home/alex/.terraform.d/plugin-cache
+
+  # Databases. Reach them from the dev container as postgres:5432 and mysql:3306.
+  # postgres:
+  #   image: postgres:17
+  #   environment:
+  #     POSTGRES_USER: alex
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: app
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+
+  # mysql:
+  #   image: mysql:8.4
+  #   environment:
+  #     MYSQL_USER: alex
+  #     MYSQL_PASSWORD: mysql
+  #     MYSQL_DATABASE: app
+  #     MYSQL_ROOT_PASSWORD: mysql
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - mysql-data:/var/lib/mysql
+
+  # AWS local emulator. Floci is the comparison's top pick (port 4566, the
+  # LocalStack-compatible endpoint). From the dev container:
+  # AWS_ENDPOINT_URL=http://floci:4566
+  # AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1
+  # Other AWS emulators from that comparison, not given a service here:
+  # LocalEmu (real Docker backends, including EKS) and MiniStack (Python).
+  # floci:
+  #   image: floci/floci:latest
+  #   ports:
+  #     - "4566:4566"
+  #   environment:
+  #     FLOCI_HOSTNAME: floci
+  #     FLOCI_STORAGE_MODE: memory
+
+  # GCP local emulator. floci-gcp serves the GCP emulator hosts on one port.
+  # PUBSUB_EMULATOR_HOST=floci-gcp:4588 and the other *_EMULATOR_HOST vars
+  # point at the same host. The comparison's LocalCloud is the other GCP
+  # option; use that image instead of this block if a tenant standardizes on it.
+  # floci-gcp:
+  #   image: floci/floci-gcp:latest
+  #   ports:
+  #     - "4588:4588"
+  #   environment:
+  #     FLOCI_GCP_HOSTNAME: floci-gcp
+  #     FLOCI_GCP_BASE_URL: http://floci-gcp:4588
+
+volumes:
+  terraform-cache:
+  # postgres-data:
+  # mysql-data:
