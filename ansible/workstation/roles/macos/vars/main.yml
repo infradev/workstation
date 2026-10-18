@@ -1,0 +1,67 @@
+homebrew:
+  - ansible
+  - aws-iam-authenticator
+  - awscli
+  - bash
+  - bash-completion@2
+  - certbot
+  - coreutils
+  - crane
+  - curl
+  - direnv
+  - gh
+  - git
+  - gnupg
+  - go
+  - graphviz
+  - helm
+  - helmfile
+  - jq
+  - k9s
+  - kind
+  - kompose
+  - krew
+  - kubectl
+  - lens
+  - libpq
+  - mysql-client
+  - nmap
+  - node
+  - nvm
+  - openssl
+  - pv
+  - python3
+  - sops
+  - stern
+  - telnet
+  - tenv
+  - tree
+  - uv
+  - vim
+  - watch
+  - wget
+  - yq
+
+homebrew_cask:
+  - claude
+  - claude-code
+  - cursor
+  - cursor-cli
+  - dbeaver-community
+  - docker-desktop
+  - gcloud-cli
+  - google-chrome
+  - google-drive
+  - iterm2
+  - microsoft-teams
+  - multipass
+  - session-manager-plugin
+  - slack
+  - stats
+  - tailscale-app
+  - xquartz
+  - zoom
+
+client_extensions:
+  - ms-vscode-remote.remote-containers
+  - ms-vscode-remote.remote-ssh

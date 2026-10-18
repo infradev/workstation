@@ -1,0 +1,51 @@
+---
+
+- name: Inserting bash 4 to /etc/shells
+  lineinfile:
+    path: /etc/shells
+    line: "{{ '/opt/homebrew' if ansible_facts['architecture'] == 'arm64' else '/usr/local' }}/bin/bash"
+  become: true
+
+- name: Change root default shell to bash 4
+  shell: "chsh -s {{ '/opt/homebrew' if ansible_facts['architecture'] == 'arm64' else '/usr/local' }}/bin/bash"
+  become: true
+
+# brew upgrade of the ansible formula replaces the files this playbook is
+# running from, and the next module result cannot be read.
+- name: Update Homebrew
+  ansible.builtin.command: brew update
+  register: brew_update
+  changed_when: "'Already up-to-date' not in brew_update.stdout"
+
+- name: List outdated Homebrew packages except Ansible
+  ansible.builtin.command: brew outdated --quiet
+  register: brew_outdated
+  changed_when: false
+  environment:
+    HOMEBREW_NO_AUTO_UPDATE: "1"
+
+- name: Upgrade outdated Homebrew packages except Ansible
+  ansible.builtin.command:
+    argv: "{{ ['brew', 'upgrade'] + brew_outdated.stdout_lines | reject('equalto', 'ansible') | list }}"
+  when: brew_outdated.stdout_lines | reject('equalto', 'ansible') | list | length > 0
+  environment:
+    HOMEBREW_NO_AUTO_UPDATE: "1"
+
+- name: Install brew packages
+  homebrew:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ homebrew }}"
+  ignore_errors: yes
+
+- name: Install brew cask packages
+  homebrew_cask:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ homebrew_cask }}"
+  ignore_errors: yes
+
+- name: Install VSCode Extensions
+  command: "cursor --install-extension {{ item }} --force"
+  loop: "{{ vscode.extensions.common + client_extensions }}"
+  ignore_errors: yes
