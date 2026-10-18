@@ -1,0 +1,12 @@
+# -*- mode: sh; -*-
+# Example (rootdir)/.envrc - copy this into a project's root as .envrc to
+# use it. Assumes ~/.config/direnv/direnvrc (deployed by the base ansible
+# role) for the use_python/layout_uv
+# functions used below.
+
+# Default python version for this project
+[ -f ".python-version" ] && pyversion=$(cat .python-version) || pyversion=3.14
+
+use python ${pyversion}
+# Creates ./.venv (if missing) via uv and adds it to PATH
+layout uv

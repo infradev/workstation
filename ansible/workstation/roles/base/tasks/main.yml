@@ -1,0 +1,86 @@
+---
+
+- name: Add user to sudo
+  lineinfile:
+    path: "/etc/sudoers.d/{{ user_name }}"
+    line: "{{ user_name }} ALL=(ALL) NOPASSWD: ALL"
+    state: present
+    mode: 0440
+    create: yes
+    validate: "visudo -cf %s"
+  become: true
+
+- name: Ensure directory exists
+  file:
+    path: "{{ local_home }}/{{ item.path | default(item) }}"
+    state: directory
+    owner: "{{ user_name }}"
+  loop: "{{ directories }}"
+  when: item is string or item.os_family is not defined or item.os_family == ansible_facts['os_family']
+
+- name: Ensure plain files exist
+  file:
+    path: "{{ local_home }}/{{ item.path }}"
+    state: touch
+  loop: "{{ files }}"
+  when:
+    - item.template is not defined
+    - item.os_family is not defined or item.os_family == ansible_facts['os_family']
+
+- name: Write templated files
+  template:
+    src: "{{ item.template }}"
+    dest: "{{ local_home }}/{{ item.path }}"
+    force: "{{ item.force | default(true) }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop: "{{ files }}"
+  when:
+    - item.template is defined
+    - item.os_family is not defined or item.os_family == ansible_facts['os_family']
+
+- name: Inserting itens in .bashrc
+  lineinfile:
+    path: "{{ local_home }}/.bashrc"
+    line: "{{ item }}"
+  with_items: "{{ bashrc_includes }}"
+
+- name: Add editor setting to ~/.gitconfig
+  community.general.git_config:
+    name: core.editor
+    scope: global
+    value: vim
+
+- name: Add name setting to ~/.gitconfig
+  community.general.git_config:
+    name: user.name
+    scope: global
+    value: 'Alexandre Souza'
+
+- name: Add email setting to ~/.gitconfig
+  community.general.git_config:
+    name: user.email
+    scope: global
+    value: 'alexandre@infradev.com.br'
+
+- name: Checkout git repos
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ local_home }}/{{ item.name }}"
+    update: no
+  with_items: "{{ git_repos }}"
+  ignore_errors: yes
+
+- name: Checkout repos
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ local_home }}/{{ item.name }}"
+    version: "{{ item.version }}"
+    update: yes
+  with_items: "{{ repos }}"
+  ignore_errors: yes
+
+- debug:
+    msg: "{{ ansible_facts['distribution'] }}"
+
+- debug:
+    msg: "{{ architecture }}-{{ distribution_major_version }}.yml"

@@ -1,0 +1,349 @@
+directories:
+  - .aws
+  - .claude
+  - .claude/skills
+  - .config/direnv
+  # Cursor user rules apply on the Mac client only.
+  - path: .cursor/rules
+    os_family: Darwin
+  - .cursor/skills
+  - .krew
+  - .kube
+  - .local/bin
+  - path: .local/krew-install
+    os_family: Debian
+  - .local/share/tenv
+  - .nvm
+  - .ssh
+  - .terraform.d/plugin-cache
+  - path: .tflint.d/plugins
+    os_family: Debian
+  - .vscode
+  - projects
+
+krew_plugins:
+  - ctx
+  - get-all
+  - ns
+  - resource-capacity
+
+files:
+  - path: .bash_aliases
+    template: bash_aliases.j2
+  - path: .bash_profile
+    template: bash_profile.j2
+  - path: .bashrc
+  - path: .claude/CLAUDE.md
+    template: CLAUDE.md.j2
+    mode: "0644"
+    # Deliberately force:false. A tool like plat-context:setup appends a
+    # managed block to this file after bootstrap; re-running this role must
+    # never clobber that live, engine-owned content.
+    force: false
+  - path: .config/direnv/direnvrc
+    template: direnvrc.j2
+    mode: "0644"
+  # Same instructions as CLAUDE.md, in the file Cursor actually loads.
+  # alwaysApply is set in cursor-rule.mdc.j2.
+  - path: .cursor/rules/workstation.mdc
+    template: cursor-rule.mdc.j2
+    mode: "0644"
+    os_family: Darwin
+  - path: .vimrc
+  - path: home.code-workspace
+    template: home.code-workspace.j2
+    mode: "0644"
+  - path: projects/.envrc.example
+    template: .envrc.j2
+    mode: "0644"
+
+bashrc_includes:
+  - "[ -f ~/.bash_aliases ] && . ~/.bash_aliases"
+  - "[ -f ~/.bash_profile ] && . ~/.bash_profile"
+
+git_repos:
+  - name: projects/infradev/workstation
+    repo: https://github.com/infradev/workstation.git
+
+repos: []
+
+vscode:
+  extensions:
+    common:
+      - amazonwebservices.aws-toolkit-vscode
+      - anthropic.claude-code
+      - davidanson.vscode-markdownlint
+      - dbcode.dbcode
+      - donjayamanne.githistory
+      - eamodio.gitlens
+      - editorconfig.editorconfig
+      - esbenp.prettier-vscode
+      - googlecloudtools.cloudcode
+      - hashicorp.hcl
+      - hashicorp.terraform
+      - mhutchie.git-graph
+      - mineiros.terramate
+      - moshfeu.compare-folders
+      - ms-azuretools.vscode-containers
+      - ms-azuretools.vscode-docker
+      - ms-kubernetes-tools.vscode-kubernetes-tools
+      - ms-python.debugpy
+      - ms-python.python
+      - ms-python.vscode-pylance
+      - ms-python.vscode-python-envs
+      - opentofu.vscode-opentofu
+      - pkief.material-icon-theme
+      - qcz.text-power-tools
+      - redhat.vscode-yaml
+      - streetsidesoftware.code-spell-checker
+      - timonwong.shellcheck
+      - yzhang.markdown-all-in-one
+  settings: |
+    {
+      // Editor settings
+      "editor.formatOnSave": true,
+      "editor.formatOnPaste": false,
+      "editor.formatOnType": false,
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true,
+      "editor.renderWhitespace": "all",
+      "editor.rulers": [
+        80,
+        100,
+        120
+      ],
+      "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit"
+      },
+
+      // Files settings
+      "files.autoSave": "afterDelay",
+      "files.eol": "\n",
+      "files.trimTrailingWhitespace": true,
+      "files.insertFinalNewline": true,
+      "files.trimFinalNewlines": true,
+      "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/*.tfstate": true,
+        "**/*.tfstate.*": true,
+        "**/.terraform": true,
+        ".terraform.lock.hcl": true
+      },
+
+      // Git settings
+      "git.autofetch": "all",
+      "git.enableSmartCommit": true,
+      "git.confirmSync": false,
+
+      // Terminal settings
+      "terminal.integrated.scrollback": 100000,
+      "terminal.integrated.defaultProfile.linux": "bash"{% if ansible_facts['os_family'] == 'Darwin' %},
+      "terminal.integrated.profiles.linux": {
+        "bash": {
+          "path": "{{ '/opt/homebrew' if ansible_facts['architecture'] == 'arm64' else '/usr/local' }}/bin/bash"
+        }
+      }
+      {%- endif %},
+
+      // UI settings
+      "workbench.iconTheme": "material-icon-theme",
+      "workbench.tree.indent": 15,
+      "workbench.tree.renderIndentGuides": "always",
+      "workbench.colorCustomizations": {
+        "tree.indentGuidesStroke": "#05ef3c"
+      },
+      "window.autoDetectColorScheme": false,
+
+      // Spell checker settings
+      "cSpell.enabled": true,
+      "cSpell.words": [
+        "azurerm",
+        "checkov",
+        "devcontainer",
+        "gcloud",
+        "infracost",
+        "terragrunt",
+        "terrascan",
+        "tflint",
+        "tfsec"
+      ],
+
+      // Terraform settings
+      "[terraform]": {
+        "editor.defaultFormatter": "hashicorp.terraform",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2
+      },
+      "[terraform-vars]": {
+        "editor.defaultFormatter": "hashicorp.terraform",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2
+      },
+      "terraform.languageServer": {
+        "enabled": true,
+        "args": ["serve"]
+      },
+      "terraform.experimentalFeatures.validateOnSave": true,
+
+      // YAML settings
+      "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2
+      },
+
+      // Markdown settings
+      "[markdown]": {
+        "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+        "editor.formatOnSave": true
+      }
+    }
+
+ai:
+  marketplaces:
+    - affaan-m/ECC
+    - akin-ozer/cc-devops-skills
+    # Tier 3 (personal/style). Marketplace key unconfirmed; best-guess install.
+    - ayghri/i-have-adhd
+    # Already in active use. Required by ~/.claude/CLAUDE.md for Slack messages.
+    - blader/humanizer
+    # Tier 3 (personal/style). Marketplace key unconfirmed; best-guess install.
+    - dietrichgebert/ponytail
+    # Off-target for this role (ML-training), requested anyway.
+    - forrestchang/andrej-karpathy-skills
+    - jfr992/terragrunt-skill
+    # Already in active use (caveman mode).
+    - JuliusBrussee/caveman
+    - LukasNiessen/kubernetes-skill
+    # Monorepo of skills, not single-skill-per-repo. Marketplace key unconfirmed (see README).
+    - mattpocock/skills
+    - thought-stuff/claude-ste
+  plugins:
+    - andrej-karpathy-skills@karpathy-skills
+    - atlassian@claude-plugins-official
+    - aws-agents-for-devsecops@claude-plugins-official
+    - aws-core@claude-plugins-official
+    - caveman@caveman
+    - claude-security@claude-plugins-official
+    - cloudflare@claude-plugins-official
+    - code-review@claude-plugins-official
+    - code-simplifier@claude-plugins-official
+    - commit-commands@claude-plugins-official
+    - context7@claude-plugins-official
+    - databases-on-aws@claude-plugins-official
+    - devops-skills@akin-ozer
+    - ecc@ecc
+    - github@claude-plugins-official
+    - humanizer@humanizer
+    - i-have-adhd@i-have-adhd
+    - kubernetes-skill@kubernetes-skill
+    - mattpocock-skills@mattpocock
+    - pagerduty@claude-plugins-official
+    - ponytail@ponytail
+    - pr-review-toolkit@claude-plugins-official
+    - remember@claude-plugins-official
+    - security-guidance@claude-plugins-official
+    - slack@claude-plugins-official
+    - ste-writing@thought-stuff
+    - superpowers@claude-plugins-official
+    - supabase@claude-plugins-official
+    - terraform@claude-plugins-official
+    - terragrunt-skill@jfr992
+    - vanta@claude-plugins-official
+
+  # Bare SKILL.md folders. They have no marketplace manifest, so they are
+  # cloned into ~/.claude/skills/<name>. subpath is a sparse checkout.
+  manual_skills:
+    - name: aws-resilience-modeling
+      repo: aws-samples/sample-aws-resilience-skill
+      subpath: aws-resilience-modeling
+    - name: aws-rma-assessment
+      repo: aws-samples/sample-aws-resilience-skill
+      subpath: aws-rma-assessment
+    - name: aws-well-architected-review
+      repo: aws-samples/sample-aws-resilience-skill
+      subpath: aws-well-architected-review
+    - name: cert-manager-troubleshooting
+      repo: foxj77/claude-code-skills
+      subpath: cert-manager-troubleshooting
+    - name: chaos-engineering-on-aws
+      repo: aws-samples/sample-aws-resilience-skill
+      subpath: chaos-engineering-on-aws
+    - name: cjis-reviewer
+      repo: aws-samples/sample-aws-resilience-skill
+      subpath: cjis-reviewer
+    - name: eks-operation-review
+      repo: aws-samples/sample-eks-operation-review-skill
+    - name: eks-resilience-checker
+      repo: aws-samples/sample-aws-resilience-skill
+      subpath: eks-resilience-checker
+    - name: eks-upgrade-check
+      repo: aws-samples/sample-eks-upgrade-skill
+      subpath: .claude/skills/eks-upgrade
+    - name: external-dns-troubleshooting
+      repo: foxj77/claude-code-skills
+      subpath: external-dns-troubleshooting
+    - name: external-secrets-troubleshooting
+      repo: foxj77/claude-code-skills
+      subpath: external-secrets-troubleshooting
+    - name: ferpa-reviewer
+      repo: aws-samples/sample-aws-resilience-skill
+      subpath: ferpa-reviewer
+    - name: flux-gitops-patterns
+      repo: foxj77/claude-code-skills
+      subpath: flux-gitops-patterns
+    - name: flux-operations
+      repo: foxj77/claude-code-skills
+      subpath: flux-operations
+    - name: flux-troubleshooting
+      repo: foxj77/claude-code-skills
+      subpath: flux-troubleshooting
+    - name: helm-chart-development
+      repo: foxj77/claude-code-skills
+      subpath: helm-chart-development
+    - name: helm-chart-maintenance
+      repo: foxj77/claude-code-skills
+      subpath: helm-chart-maintenance
+    - name: helm-chart-review
+      repo: foxj77/claude-code-skills
+      subpath: helm-chart-review
+    - name: helm-chart-testing
+      repo: foxj77/claude-code-skills
+      subpath: helm-chart-testing
+    - name: k8s-continual-improvement
+      repo: foxj77/claude-code-skills
+      subpath: k8s-continual-improvement
+    - name: k8s-dns-troubleshooting
+      repo: foxj77/claude-code-skills
+      subpath: k8s-dns-troubleshooting
+    - name: k8s-namespace-troubleshooting
+      repo: foxj77/claude-code-skills
+      subpath: k8s-namespace-troubleshooting
+    - name: k8s-network-troubleshooting
+      repo: foxj77/claude-code-skills
+      subpath: k8s-network-troubleshooting
+    - name: k8s-platform-operations
+      repo: foxj77/claude-code-skills
+      subpath: k8s-platform-operations
+    - name: k8s-platform-tenancy
+      repo: foxj77/claude-code-skills
+      subpath: k8s-platform-tenancy
+    - name: k8s-security-hardening
+      repo: foxj77/claude-code-skills
+      subpath: k8s-security-hardening
+    - name: k8s-security-redteam
+      repo: foxj77/claude-code-skills
+      subpath: k8s-security-redteam
+    - name: kyverno-troubleshooting
+      repo: foxj77/claude-code-skills
+      subpath: kyverno-troubleshooting
+    - name: no-ai-slop
+      repo: petergyang/no-ai-slop
+      subpath: skills/no-ai-slop
+    - name: security-audit
+      repo: cloudflare/security-audit-skill
+      subpath: skills/security-audit
+    - name: selfhosted-stack-analyzer
+      repo: aws-samples/sample-aws-resilience-skill
+      subpath: selfhosted-stack-analyzer

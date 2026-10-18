@@ -1,0 +1,132 @@
+# CLAUDE.md
+
+Instructions for Claude Code — apply these preferences in every session, across all projects.
+
+## Git / commits
+
+- Never commit code, ever — always wait for explicit user approval first. Only run `git commit` (or push) after the user has confirmed, even for small or already-discussed changes.
+- Never sign commits or PR descriptions with Claude:
+  - No `Co-Authored-By: Claude ... <noreply@anthropic.com>` trailer on commits.
+  - No `Claude-Session: https://claude.ai/code/...` line on commits.
+  - No "Generated with Claude Code" footer or session URL in PR bodies or issue text.
+- Never sign commits or PR descriptions with Cursor:
+  - No `Co-authored-by: Cursor <cursoragent@cursor.com>` trailer on commits.
+  - No similar Cursor co-author trailers, attribution footers, or session URLs in commits, PR bodies, or issue text.
+
+## Code comments
+
+- Comments must describe only the final resource/code as it stands — never narrate historical changes ("no longer", "used to", "instead of", "was removed", "still", "NOT deleted", "kept"). If something changes, rewrite the comment to describe the new state directly, don't diff it against the old one.
+
+## Markdown formatting
+
+- Never hard-wrap text inside a paragraph (inserting a newline at ~70-80 chars like typed prose). Write each paragraph as a single line, regardless of length. This applies to PR/commit descriptions, Slack messages, issue comments, and any other markdown that gets rendered — GitHub and Slack render single newlines as visible line breaks, so hard-wrapping shows up as broken mid-sentence lines instead of a clean paragraph.
+- Only break lines for actual structure: separate paragraphs (blank line between them), list items, headers, code blocks, etc.
+
+## Writing style
+
+- Never use em dashes (—) in prose. Use commas, colons, or periods instead, the way people write day to day.
+- For plans, reports, user-facing messages, and tool/skill descriptions, run them through `ste-writing` (ASD-STE100 Simplified Technical English discipline plus its anti-slop linter) and `no-ai-slop` before finalizing.
+
+## Personality and tone
+
+Three non-competing skills, each at a different layer — use all three in chat replies:
+
+- `caveman` (language layer): strip filler, polite fluff, and unnecessary prose from the chat reply itself. Code is untouched — this only shrinks what has to be read, not what gets written.
+- `ponytail` (architecture/code layer): take the laziest, most direct path. Before adding code or a dependency, ask whether it needs to exist at all — prefer built-in platform features and native tools over new packages. Fewer lines, fewer tokens spent executing.
+- `i-have-adhd` (structure layer): lead with the answer or action item, not a wind-up — don't bury the solution at the end of an explanation. For open-ended problems, brainstorm via independent parallel threads rather than one linear chain.
+
+Scope: chat replies only. Persisted artifacts — commits, PRs, issues, docs, memory files, Slack messages — stay in normal prose with whatever tone that artifact's own section specifies (e.g. Slack messages below). Don't carry caveman's compression into those.
+
+## Terraform
+
+- Never upgrade or install Terraform via brew. Always set the Terraform version with [tenv](https://github.com/tofuutils/tenv) (`tenv terraform install <version>`), and run terraform via the tenv-managed binary so it matches each project's `required_version` constraint.
+- For AWS resources, primarily use registry modules from [terraform-aws-modules](https://github.com/terraform-aws-modules) and [aws-ia](https://github.com/aws-ia) instead of hand-writing raw resources, whenever a suitable module exists.
+- Three distinct Terraform tools, pick by task: `terraform-generator` to write new `.tf`/HCL (see DevOps skills below), `terraform-validator` to lint/audit it (tflint, checkov), and `terraform` (MCP) for plan previews, state inspection, module docs, or drift detection on code that already exists.
+- Same split for Terragrunt: `terragrunt-skill` for architecture (stacks, units, catalog patterns, CI/CD pipelines, AWS/GCP OIDC, multi-account layouts); `terragrunt-generator`/`terragrunt-validator` for quick single-file HCL generation/linting (see DevOps skills below).
+
+## Skill triggers
+
+- After writing or modifying code, use `code-simplifier` before declaring the task done.
+- For AWS IAM, Secrets Manager, CloudFormation/CDK, containers, or observability work, use `aws-core`.
+- For up-to-date library/API documentation instead of relying on training-cutoff knowledge, use `context7`.
+- For writing or pressure-testing documentation against the actual code, use `grill-with-docs`.
+- When debugging, use `superpowers:systematic-debugging`; before declaring a task done, use `superpowers:verification-before-completion`; for planning complex work, use `superpowers:writing-plans`.
+- For ML-training-focused work, use `andrej-karpathy-skills`.
+- For Kubernetes manifests/Helm/Kustomize/cluster policies, use `kubernetes-skill` when the work is security/reliability-sensitive (insecure defaults, resource starvation, network exposure, privilege sprawl, fragile rollouts, API drift); use `k8s-yaml-generator`/`k8s-yaml-validator` (see DevOps skills below) for quick, low-stakes manifest scaffolding/linting instead.
+
+## DevOps skills (`devops-skills@akin-ozer`)
+
+Each domain below has a `-generator` (write/scaffold new files) and a `-validator` (lint/audit/fix existing ones) skill — use the generator when creating, the validator when checking:
+
+| Domain | Generate | Validate |
+| --- | --- | --- |
+| Ansible playbooks/roles | `ansible-generator` | `ansible-validator` |
+| Azure Pipelines | `azure-pipelines-generator` | `azure-pipelines-validator` |
+| Bash/shell scripts | `bash-script-generator` | `bash-script-validator` (ShellCheck) |
+| Dockerfiles | `dockerfile-generator` | `dockerfile-validator` |
+| Fluent Bit configs | `fluentbit-generator` | `fluentbit-validator` |
+| GitHub Actions workflows | `github-actions-generator` | `github-actions-validator` |
+| GitLab CI pipelines | `gitlab-ci-generator` | `gitlab-ci-validator` |
+| Helm charts | `helm-generator` | `helm-validator` |
+| Jenkinsfiles | `jenkinsfile-generator` | `jenkinsfile-validator` |
+| Kubernetes YAML manifests | `k8s-yaml-generator` | `k8s-yaml-validator` |
+| Makefiles | `makefile-generator` | `makefile-validator` |
+| PromQL queries/rules | `promql-generator` | `promql-validator` |
+| Terraform `.tf`/HCL | `terraform-generator` | `terraform-validator` (tflint, checkov) |
+| Terragrunt `.hcl` (single-file) | `terragrunt-generator` | `terragrunt-validator` |
+
+Generate-only (no validator pair):
+
+- `logql-generator` — LogQL queries/stream selectors/alerting rules for Grafana Loki.
+- `loki-config-generator` — Loki server configs (ingester/querier/compactor/ruler, S3/GCS/Azure backends).
+
+Standalone:
+
+- `k8s-debug` — diagnose/fix a *running* cluster (CrashLoopBackOff, Pending, DNS, networking, storage, rollout failures) via `kubectl`. Distinct from `k8s-yaml-generator`/`k8s-yaml-validator`, which are about manifest files, not live state.
+
+## Manual-install skills (not `/plugin`-installable)
+
+These ship as bare `SKILL.md` folders, not plugin marketplaces (no `.claude-plugin/marketplace.json`). The base role clones each `ai.manual_skills` entry into `~/.claude/skills/<name>/`, links it into `~/.cursor/skills/<name>/`, and runs `npx apex-skills` for `aws-samples/sample-apex-skills`.
+
+- `apex-skills` (`aws-samples/sample-apex-skills`) — curated collection of 25+ AWS-SSA-authored platform-engineering skills (ECS/EKS architecture, security, cost, build, observability, modernization, Graviton migration, Terraform, and more). Browse the repo for the specific domain needed; has its own npx installer.
+- `eks-operation-review` (`aws-samples/sample-eks-operation-review-skill`) — 10-area operational audit of a live EKS cluster (networking, autoscaling, observability, access, add-ons, workload config, deployments, lifecycle, IaC, process), GREEN/AMBER/RED report. Not for upgrade-readiness or architectural design.
+- `eks-upgrade-check` (`aws-samples/sample-eks-upgrade-skill`) — EKS upgrade readiness score (0-100%) across 8 areas, read-only, with remediation steps. Use for "about to upgrade"; use `eks-operation-review` for current-state health instead.
+- `no-ai-slop` (`petergyang/no-ai-slop`) — anti-AI-slop writing linter, paired with `ste-writing` for plans/reports/user-facing messages (see Writing style above). The repo's top level is a `.codex-plugin` for Codex; only `skills/no-ai-slop/SKILL.md` applies to Claude Code, so clone that path, not the whole repo as a marketplace.
+- `security-audit-skill` (`cloudflare/security-audit-skill`) — deep, protocol-by-protocol security audit skill (AI/LLM, client-side, cloud/deployment, data isolation, memory safety, supply chain, web/auth, and more). No `.claude-plugin/marketplace.json`, so it's clone-only, not `/plugin`-installable despite the similarly-named official `security-guidance` plugin.
+- From `aws-samples/sample-aws-resilience-skill`:
+  - `aws-resilience-modeling` — architecture resilience analysis: failure modes, component dependency mapping, risk scoring, DR plan design.
+  - `aws-rma-assessment` — interactive Reliability/Maintainability/Availability maturity questionnaire (36 or 80 questions) against the Well-Architected framework, with an improvement roadmap.
+  - `aws-well-architected-review` (this repo's own copy) — automated 6-pillar Well-Architected review via AWS CLI, read-only. A maintained, marketplace-installable version of this same review already ships inside `aws-core@claude-plugins-official` (already have it) — prefer that one; this is a separate implementation with the same name.
+  - `chaos-engineering-on-aws` — FIS (+ optional Chaos Mesh) chaos experiments with monitoring/rollback, to validate resilience via controlled fault injection.
+  - `cjis-reviewer` — CJIS Security Policy v6.0 compliance gap assessment for environments handling Criminal Justice Information.
+  - `eks-resilience-checker` — 26-check EKS cluster resilience assessment (workloads, control plane, data plane); output feeds `chaos-engineering-on-aws`.
+  - `ferpa-reviewer` — FERPA/student-data-privacy compliance gap assessment for EdTech/K-12/higher-ed on AWS.
+  - `selfhosted-stack-analyzer` — topology + resilience weakness analysis for self-hosted stateful middleware (MySQL/TiDB/Redis/Kafka/ZooKeeper) on EKS or EC2; produces a Mermaid diagram and SPOF report.
+- From `foxj77/claude-code-skills` (Kubernetes/GitOps troubleshooting and platform-ops). `k8s-debug` (devops-skills, above) overlaps with this group's `k8s-dns-troubleshooting`/`k8s-network-troubleshooting`/`k8s-namespace-troubleshooting`: start with `k8s-debug` for a quick, broad first look; reach for the specific `foxj77` skill below when the problem is already known to be DNS-, network-, or namespace-scoped, or `k8s-debug` didn't resolve it.
+  - `cert-manager-troubleshooting` — TLS certs not issuing/renewing, ACME challenge failures, Issuer/ClusterIssuer not ready.
+  - `external-dns-troubleshooting` — DNS records not created/updated for Services/Ingresses, stale/orphaned records, provider sync failures.
+  - `external-secrets-troubleshooting` — ExternalSecret/SecretStore errors, secrets not syncing from AWS/Azure/HashiCorp/GCP secret stores.
+  - `flux-gitops-patterns` — designing GitOps repo structure, dependency chains, multi-environment deployments, Flux secrets management, notifications, reconciliation tuning.
+  - `flux-operations` — forcing/suspending reconciliation, rollback, upgrading Flux components, drift detection, multi-cluster Flux.
+  - `flux-troubleshooting` — Flux resources `Ready False`, reconciliation errors, HelmRelease install failures, source artifacts not fetching.
+  - `helm-chart-development` — creating new charts, `values.yaml` schema design, template patterns, `_helpers.tpl`, `values.schema.json`.
+  - `helm-chart-maintenance` — chart versioning, dependency updates, upgrade strategies, CI/CD for charts, deprecations, OCI registry publishing.
+  - `helm-chart-review` — code review and security/quality audit of existing charts.
+  - `helm-chart-testing` — adding or fixing Helm chart tests (`helm test`), coverage analysis.
+  - `k8s-continual-improvement` — SLOs, cost optimization (FinOps), toil reduction, capacity planning, platform maturity, improvement roadmaps.
+  - `k8s-dns-troubleshooting` — pods can't resolve service names, CoreDNS unhealthy, slow/timing-out DNS lookups.
+  - `k8s-namespace-troubleshooting` — namespace-scoped investigation of unhealthy workloads, pod failures, events, triage.
+  - `k8s-network-troubleshooting` — pod-to-pod/service connectivity, network policy blocking, ingress/egress failures, Istio mesh issues.
+  - `k8s-platform-operations` — cluster health checks, incident response, capacity planning, maintenance, backup/recovery, runbooks.
+  - `k8s-platform-tenancy` — provisioning tenant namespaces, RBAC, resource quotas, network isolation, tenant lifecycle.
+  - `k8s-security-hardening` — Pod Security Standards, zero-trust network policies, secrets management, admission control, CIS benchmark compliance.
+  - `k8s-security-redteam` — authorized penetration testing, attack-path identification, validating hardening measures.
+  - `kyverno-troubleshooting` — Kyverno policies blocking resources, audit/mutation/generate rule failures, admission webhook errors.
+
+## Slack messages
+
+- Always create the message as a draft. Never send it directly — sending is the user's call.
+- Audience is developers and tech managers. Keep the tone friendly.
+- Shrink every Slack message to short, direct text — no filler.
+- Use bold for highlights — the key point, a name, a number worth catching the eye.
+- Run the message through the `humanizer` skill (`/humanize`) before drafting, to strip AI-sounding phrasing.

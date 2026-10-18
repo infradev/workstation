@@ -1,0 +1,46 @@
+# -*- mode: sh; -*-
+# Global configuration for [direnv](https://direnv.net/) - deployed to
+# ~/.config/direnv/direnvrc by the base ansible role. Overrides/completes the
+# direnv-stdlib: https://github.com/direnv/direnv/blob/master/stdlib.sh
+#
+# Pairs with the per-project .envrc.example deployed to ~/projects - copy
+# that into a project's root as .envrc to use the layouts defined below.
+#
+# Built on uv (https://docs.astral.sh/uv/), not pyenv/virtualenv - uv is
+# what's actually installed (debian/macos/devcontainer all provision it)
+# and manages both Python versions and venvs itself, faster and without
+# pyenv's shell-shim indirection.
+############################ Python (uv) ############################
+
+# === Pin a specific Python version (installing it via uv if needed) ===
+# Usage in .envrc:
+#    use python <version>
+use_python() {
+    local pyversion=$1
+    if has uv; then
+        uv python install "${pyversion}" >&2
+        export UV_PYTHON="${pyversion}"
+    else
+        log_error "uv not found - install it: https://docs.astral.sh/uv/getting-started/installation/"
+    fi
+}
+
+# === Create (if missing) and activate a uv-managed virtualenv ===
+# Usage in .envrc:
+#    layout uv
+layout_uv() {
+    if ! has uv; then
+        log_error "uv not found - install it: https://docs.astral.sh/uv/getting-started/installation/"
+        return 1
+    fi
+
+    VIRTUAL_ENV="${PWD}/.venv"
+    if [ ! -d "$VIRTUAL_ENV" ]; then
+        log_status "no venv found; creating $VIRTUAL_ENV"
+        uv venv ${UV_PYTHON:+--python "$UV_PYTHON"} "$VIRTUAL_ENV" >&2
+    fi
+    export VIRTUAL_ENV
+    export UV_PROJECT_ENVIRONMENT="$VIRTUAL_ENV"
+    unset PYTHONHOME
+    PATH_add "${VIRTUAL_ENV}/bin"
+}

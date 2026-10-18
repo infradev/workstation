@@ -1,0 +1,119 @@
+---
+
+# Runs after the OS role, via import_role in ansible.yml. claude, gh, and
+# on a Mac cursor-agent are already on PATH.
+
+- name: Add Claude Code plugin marketplaces
+  ansible.builtin.command: "claude plugin marketplace add {{ item }}"
+  loop: "{{ ai.marketplaces }}"
+  changed_when: true
+  ignore_errors: yes
+
+- name: Seed the built-in Claude plugins marketplace
+  ansible.builtin.shell: claude plugin marketplace add anthropics/claude-plugins-official || claude plugin marketplace update claude-plugins-official
+  changed_when: false
+  failed_when: false
+
+- name: Install Claude Code plugins
+  ansible.builtin.command: "claude plugin install {{ item }}"
+  loop: "{{ ai.plugins }}"
+  changed_when: true
+  ignore_errors: yes
+
+- name: Clone manual Claude skills
+  ansible.builtin.git:
+    repo: "https://github.com/{{ item.repo }}.git"
+    dest: "{{ local_home }}/.claude/skills/{{ item.name }}"
+    depth: 1
+    single_branch: true
+    update: true
+  loop: "{{ ai.manual_skills | rejectattr('subpath', 'defined') | list }}"
+  ignore_errors: yes
+
+- name: Clone manual Claude skill folders
+  ansible.builtin.shell: |
+    set -euo pipefail
+    tmp="$(mktemp -d)"
+    git clone --depth 1 --filter=blob:none --sparse "https://github.com/{{ item.repo }}.git" "$tmp"
+    git -C "$tmp" sparse-checkout set "{{ item.subpath }}"
+    rm -rf "{{ local_home }}/.claude/skills/{{ item.name }}"
+    mv "$tmp/{{ item.subpath }}" "{{ local_home }}/.claude/skills/{{ item.name }}"
+    rm -rf "$tmp"
+  args:
+    executable: /bin/bash
+    creates: "{{ local_home }}/.claude/skills/{{ item.name }}"
+  loop: "{{ ai.manual_skills | selectattr('subpath', 'defined') | list }}"
+  ignore_errors: yes
+
+- name: Link manual skills into Cursor
+  ansible.builtin.file:
+    src: "{{ local_home }}/.claude/skills/{{ item.name }}"
+    dest: "{{ local_home }}/.cursor/skills/{{ item.name }}"
+    state: link
+    force: true
+  loop: "{{ ai.manual_skills }}"
+  ignore_errors: yes
+
+- name: Install apex-skills
+  ansible.builtin.shell: |
+    set -euo pipefail
+    export NVM_DIR="{{ local_home }}/.nvm"
+    if [ -s "${NVM_DIR}/nvm.sh" ]; then
+      . "${NVM_DIR}/nvm.sh"
+    fi
+    command -v npx >/dev/null
+    npx --yes apex-skills
+  args:
+    executable: /bin/bash
+    chdir: "{{ local_home }}/.claude/skills"
+  environment:
+    HOME: "{{ local_home }}"
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ local_home }}/.local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
+  register: apex_skills
+  changed_when: apex_skills.rc == 0
+  failed_when: false
+
+- name: Install gh act extension
+  ansible.builtin.command: gh extension install nektos/gh-act
+  register: gh_act
+  changed_when: gh_act.rc == 0
+  failed_when: gh_act.rc != 0 and 'already installed' not in ((gh_act.stderr | default('')) ~ (gh_act.stdout | default('')))
+  environment: "{{ {'PATH': '/opt/homebrew/bin:/usr/local/bin:' ~ (ansible_facts['env']['PATH'] | default(''))} | combine({'GH_TOKEN': lookup('env', 'GH_TOKEN')} if lookup('env', 'GH_TOKEN') else {}) }}"
+
+- name: Add Cursor plugin marketplaces
+  ansible.builtin.command: "cursor-agent plugin marketplace add https://github.com/{{ item }}.git"
+  loop: "{{ ai.marketplaces + ['anthropics/claude-plugins-official'] }}"
+  environment:
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ local_home }}/.local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
+  register: cursor_marketplace
+  changed_when: cursor_marketplace.rc == 0
+  failed_when: >-
+    cursor_marketplace.rc != 0
+    and 'already' not in ((cursor_marketplace.stderr | default('')) ~ (cursor_marketplace.stdout | default('')))
+    and 'Authentication required' not in ((cursor_marketplace.stderr | default('')) ~ (cursor_marketplace.stdout | default('')))
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Cursor CLI login is required
+  ansible.builtin.fail:
+    msg: |
+      cursor-agent is not logged in, so no Cursor marketplace was added.
+      Run: NO_OPEN_BROWSER=1 cursor-agent login
+      Open the printed URL. If the page stays on Loading, add www so it starts with https://www.cursor.com/loginDeepControl. cursor.com without www does not finish rendering.
+      Leave the terminal running until login succeeds, then run this playbook again.
+  when:
+    - ansible_facts['os_family'] == 'Darwin'
+    - cursor_marketplace.results | default([]) | map(attribute='stderr', default='') | select('search', 'Authentication required') | list | length > 0
+
+- name: Update Krew plugin list
+  ansible.builtin.shell: kubectl krew update
+  environment:
+    KREW_ROOT: "{{ local_home }}/.krew"
+    PATH: "{{ local_home }}/.krew/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
+
+- name: Install Krew plugins
+  ansible.builtin.shell: "kubectl krew install {{ item }}"
+  environment:
+    KREW_ROOT: "{{ local_home }}/.krew"
+    PATH: "{{ local_home }}/.krew/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
+  loop: "{{ krew_plugins }}"
+  when: krew_plugins | length > 0

@@ -1,0 +1,81 @@
+shopt -s expand_aliases
+
+parse_git_branch() { git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/' ; }
+PS1='\[\033[1;31m\]\u\[\033[1;32m\]@\[\033[1;33m\]\h \[\033[1;32m\]$PWD$(parse_git_branch):\n# \[\033[0m\]'
+
+export CLICOLOR=1
+
+alias ll='ls -lhA'
+alias grep='grep --color'
+
+[ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
+
+{% if ansible_facts['system'] == "Darwin" and ansible_facts['architecture'] == "arm64" %}
+export LOCAL_BIN=/opt/homebrew
+{% else %}
+export LOCAL_BIN=/usr/local
+{% endif %}
+
+{% if ansible_facts['system'] == "Darwin" %}
+# brew
+eval $(${LOCAL_BIN}/bin/brew shellenv)
+{% endif %}
+
+# bash_completion
+[[ -r "/etc/profile.d/bash_completion.sh" ]] && . "/etc/profile.d/bash_completion.sh"
+[[ -r "${LOCAL_BIN}/etc/profile.d/bash_completion.sh" ]] && . "${LOCAL_BIN}/etc/profile.d/bash_completion.sh"
+
+# ssh
+eval $(ssh-agent -s)
+grep -slR "PRIVATE" ~/.ssh | xargs ssh-add
+
+# aws cli
+complete -C 'aws_completer' aws
+
+# kubectl
+alias k=kubectl
+complete -F __start_kubectl k
+
+# nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+[ -d "$HOME/.local/bin" ] || mkdir $NVM_DIR
+[ -s "${LOCAL_BIN}/opt/nvm/nvm.sh" ] && \. "${LOCAL_BIN}/opt/nvm/nvm.sh"  # This loads nvm
+[ -s "${LOCAL_BIN}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${LOCAL_BIN}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+
+{% if ansible_facts['system'] == "Darwin" %}
+# ssl dependant packages vars
+export CFLAGS="-I$(brew --prefix openssl)/include"
+export LDFLAGS="-L$(brew --prefix openssl)/lib"
+{% else %}
+{% endif %}
+
+# tenv (resolves Terraform/Terragrunt/Terramate/OpenTofu per project, downloads
+# any version a repo pins but isn't installed yet)
+export TENV_ROOT="$HOME/.local/share/tenv"
+export TENV_AUTO_INSTALL=true
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
+# direnv (per-directory .envrc loading; global config at ~/.config/direnv/direnvrc)
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
+
+# krew
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+{% if ansible_facts['system'] == "Darwin" %}
+# mysql & pg clients (keg-only homebrew formulae, not symlinked onto PATH)
+export PATH="${LOCAL_BIN}/opt/mysql-client/bin:$PATH"
+export PATH="${LOCAL_BIN}/opt/libpq/bin:$PATH"
+{% endif %}
+
+# history size
+export HISTFILESIZE=1000000
+export HISTSIZE=1000000
+export HISTTIMEFORMAT="%F %T "
+
+ulimit -n 10240
+uname -n -r -m
+
+
+. "$HOME/.bash_aliases"

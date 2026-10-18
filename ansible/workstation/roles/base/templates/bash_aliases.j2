@@ -1,0 +1,15 @@
+alias tf-clean='find . -name ".terraform*" -exec rm -rf {} \;'
+alias tf-setup='rm -rf .terraform* ; tfenv use min-required ; terraform init ; terraform validate' # ; terraform plan -lock=false -detailed-exitcode'
+alias tf-sso='aws sso login --sso-session'
+alias tf-test='terraform fmt -recursive ; tflint --recursive'
+
+alias docker-clean='docker rm -f \$(docker ps -aq) ; docker rmi \$(docker images -q)'
+alias docker-debug='kubectl run -it --rm=true debug --image=ubuntu --restart=Never -- sh'
+alias docker-login='aws ecr get-login-password --region us-west-2 --profile=central-services | docker login --username AWS --password-stdin 189260851132.dkr.ecr.us-west-2.amazonaws.com'
+alias docker-none='docker rmi \$(docker images -f "dangling=true" -q)'
+alias docker-prune='docker system prune -a -f ; docker builder prune -a -f'
+# DOCKER_BUILDKIT=0 docker compose --progress plain up -d --build
+# docker run --rm -i hadolint/hadolint < Dockerfile
+
+alias git-clean="for i in \$(ls -d -1 */) ; do echo \">>> \$i\" ; pushd \$i ; git fetch -p && git branch -vv | awk '/: gone]/{print \$1}' | xargs git branch -D ; popd ; done"
+alias git-rebase='git fetch --all --prune && git rebase origin/main'
