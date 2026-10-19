@@ -1,4 +1,4 @@
-# The dev service is the only one started by default. Tenant sidecars below
+# The workstation service is the only one started by default. Tenant sidecars below
 # are commented examples from the local Kubernetes distribution comparison:
 # uncomment the ones this project needs, then rebuild the devcontainer.
 # kind is not a service here. The devcontainer feature installs the kind CLI,
@@ -7,10 +7,12 @@
 # not installed.
 # Volume paths are relative to this file. Cursor does not export
 # localWorkspaceFolder into `docker compose config`.
-name: workstation
+# No top-level name. Dev Containers names the project from the workspace
+# folder (<folder>_devcontainer). A fixed name makes every copy of this
+# file claim the same container.
 
 services:
-  dev:
+  workstation:
     build:
       context: .
       dockerfile: Dockerfile

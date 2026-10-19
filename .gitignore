@@ -1,0 +1,5 @@
+# Login files for this checkout. The .gitkeep skeleton stays tracked.
+# Patterns are relative to this file, so they apply in this repository
+# and after `git subtree add --prefix=.devcontainer`.
+.creds/*/*
+!.creds/*/.gitkeep
