@@ -6,7 +6,7 @@
   // by the kind feature below; it creates clusters through Docker-in-Docker,
   // not as a Compose service.
   "dockerComposeFile": "compose.yaml",
-  "service": "dev",
+  "service": "workstation",
   "workspaceFolder": "/workspaces/project",
   "shutdownAction": "stopCompose",
   "overrideCommand": true,

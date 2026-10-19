@@ -32,7 +32,9 @@ override.tf.json
 .remember/
 
 # Project-scoped devcontainer credentials (AWS/Azure/GCP/SSH/kube/Terraform
-# Cloud/Claude Code logins) - never commit real credentials. The directory
+# Cloud/Claude Code logins). Never commit real credentials. The directory
 # skeleton itself is tracked (.gitkeep) so it ships pre-created.
+# The same rules are in .devcontainer/.gitignore. That file travels with
+# `git subtree`, so each consumer repository ignores its own .creds files.
 .devcontainer/.creds/*/*
 !.devcontainer/.creds/*/.gitkeep

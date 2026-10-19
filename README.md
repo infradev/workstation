@@ -54,7 +54,7 @@ make bootstrap-user HOST=1.2.3.4
 ## Open the Dev Container
 
 1. Open this repository in Cursor or VS Code.
-2. Reopen in Container. Compose starts the `dev` service from `.devcontainer/compose.yaml`. The container name and hostname follow the project directory.
+2. Reopen in Container. Compose starts the `workstation` service from `.devcontainer/compose.yaml`. The container name and hostname follow the project directory.
 3. `initializeCommand` sets `.devcontainer/.creds/ssh` to mode `700`.
 4. `postCreateCommand` (`post-create`) runs the playbook with `--skip-tags host` when `ansible/workstation/ansible.yml` is in the workspace.
 5. `postStartCommand` (`post-start`) prints installed versions and the sign-in steps still pending.
@@ -111,6 +111,8 @@ Git commits use `Alexandre Souza` / `alexandre@infradev.com.br`. The base role w
 
 Finalize in the base role turns off agent signatures in the user config, on the host and in the container. `~/.claude/settings.json` gets `includeCoAuthoredBy` set to false. `~/.cursor/cli-config.json` gets `attributeCommitsToAgent` and `attributePRsToAgent` set to false. Other keys in those files stay.
 
+The playbook cannot turn off attribution in the Cursor IDE. Open Cursor Settings, then Source Control, then Attribution. Turn off Commit Attribution and PR Attribution. Commit Attribution is the switch described as Mark Agent commits as 'Made with Cursor'. The playbook prints this reminder on the console.
+
 These variables are set in `.bash_profile` and, in the container, in `containerEnv`:
 
 | Variable | Value |
@@ -123,7 +125,7 @@ These variables are set in `.bash_profile` and, in the container, in `containerE
 
 ## Dev Container credentials
 
-Logins are bind-mounted from `.devcontainer/.creds/<name>` in the workspace. The directories are in git as empty `.gitkeep` skeletons. Everything inside them is gitignored. Each project has its own AWS, Azure, gcloud, SSH, kubeconfig, Terraform (`terraform.d`, including the plugin cache volume nested under it), GitLab CLI, and Claude config.
+Logins are bind-mounted from `.devcontainer/.creds/<name>` in the workspace. The directories are in git as empty `.gitkeep` skeletons. Everything inside them is gitignored. The ignore rules are in `.devcontainer/.gitignore`. A subtree checkout uses that file. Each project has its own AWS, Azure, gcloud, SSH, kubeconfig, Terraform (`terraform.d`, including the plugin cache volume nested under it), GitLab CLI, and Claude config.
 
 The mounts start empty. Sign in inside the container and the files stay in that project's `.creds` directory:
 
@@ -140,9 +142,36 @@ The mounts start empty. Sign in inside the container and the files stay in that 
 
 `terraform login` rewrites `credentials.tfrc.json` by rename, so the whole `.terraform.d` directory is mounted. A single-file bind would reject that rename.
 
+## Reuse with git subtree
+
+Put this `.devcontainer` directory into another repository with `git subtree`. Each checkout keeps its own `.creds` files. Those files stay untracked, so `git push` does not send them. A later pull does not change untracked files in `.creds`.
+
+Publish the directory from this repository after you commit the `.devcontainer` changes:
+
+1. Run `git subtree push --prefix=.devcontainer origin devcontainer`.
+
+In the other repository, for a first add:
+
+1. Run `git subtree add --prefix=.devcontainer --squash git@github.com:infradev/workstation.git devcontainer`.
+2. Sign in inside the container. Git stores the login files only in that project's `.devcontainer/.creds` directory.
+
+To bring in later changes:
+
+1. Run `git subtree pull --prefix=.devcontainer --squash git@github.com:infradev/workstation.git devcontainer`.
+
+If that repository already contains a `.devcontainer` directory:
+
+1. Copy `.devcontainer/.creds` to a path outside the repository.
+2. Remove `.devcontainer` with `git rm -r .devcontainer`.
+3. Commit that removal.
+4. Run the `git subtree add` command above.
+5. Copy the saved `.creds` directory back to `.devcontainer/.creds`.
+
+Do not run `git add -f` on `.creds`. That command tracks the login files. A later push then sends them.
+
 ## Optional Compose services
 
-Compose starts `dev` only. `.devcontainer/compose.yaml` has commented examples for Postgres 17, MySQL 8.4, Floci on port 4566 (AWS endpoint `http://floci:4566`), and floci-gcp on port 4588. Uncomment the services that project needs and rebuild the container.
+Compose starts `workstation` only. `.devcontainer/compose.yaml` has commented examples for Postgres 17, MySQL 8.4, Floci on port 4566 (AWS endpoint `http://floci:4566`), and floci-gcp on port 4588. Uncomment the services that project needs and rebuild the container.
 
 kind runs as a CLI in the dev container. `kind create cluster` uses the Docker daemon from Docker-in-Docker.
 

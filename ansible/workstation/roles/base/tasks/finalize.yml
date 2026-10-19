@@ -191,3 +191,12 @@
     PATH: "{{ local_home }}/.krew/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
   loop: "{{ krew_plugins }}"
   when: krew_plugins | length > 0
+
+- name: Cursor IDE attribution is a manual setting
+  ansible.builtin.debug:
+    msg: |
+      The playbook turned off attribution for the Cursor CLI only.
+      The IDE still adds Co-authored-by until you change Cursor Settings.
+      Open Cursor Settings, then Source Control, then Attribution.
+      Turn off Commit Attribution and PR Attribution.
+      Commit Attribution is the switch described as Mark Agent commits as 'Made with Cursor'.
