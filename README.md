@@ -152,8 +152,10 @@ Publish the directory from this repository after you commit the `.devcontainer` 
 
 In the other repository, for a first add:
 
-1. Run `git subtree add --prefix=.devcontainer --squash git@github.com:infradev/workstation.git devcontainer`.
-2. Sign in inside the container. Git stores the login files only in that project's `.devcontainer/.creds` directory.
+1. If the directory is not a Git repository yet, run `git init -b main`.
+2. If you ran that command, run `git commit --allow-empty -m "chore: initial commit"`. `git subtree add` needs a commit on the branch.
+3. Run `git subtree add --prefix=.devcontainer --squash git@github.com:infradev/workstation.git devcontainer`.
+4. Sign in inside the container. Git stores the login files only in that project's `.devcontainer/.creds` directory.
 
 To bring in later changes:
 
