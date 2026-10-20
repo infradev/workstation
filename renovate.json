@@ -1,16 +1,28 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
-  "enabledManagers": ["github-actions", "devcontainer", "custom.regex"],
-  "schedule": ["on saturday"],
+  "extends": [
+    "config:recommended"
+  ],
+  "enabledManagers": [
+    "github-actions",
+    "devcontainer",
+    "custom.regex"
+  ],
+  "schedule": [
+    "on saturday"
+  ],
   "automerge": true,
   "platformAutomerge": true,
   "prConcurrentLimit": 5,
   "packageRules": [
     {
       "description": "Do not rewrite runs-on. ubuntu-26.04-arm is a chosen runner, not a dependency.",
-      "matchManagers": ["github-actions"],
-      "matchDepTypes": ["github-runner"],
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchDepTypes": [
+        "github-runner"
+      ],
       "enabled": false
     }
   ],
