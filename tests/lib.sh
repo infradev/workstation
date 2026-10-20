@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Shared helpers for the workstation checks.
+# Callers source this file, so these names are the library API.
+# shellcheck disable=SC2034
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ANSIBLE="${ROOT}/ansible/workstation"
@@ -32,7 +34,6 @@ env_value() {
 run_capture() {
   set +e
   RUN_OUT="$(timeout 20 "$@" 2>&1)"
-  RUN_RC=$?
   set +e
 }
 

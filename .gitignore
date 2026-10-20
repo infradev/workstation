@@ -30,6 +30,7 @@ override.tf.json
 
 .claude
 .remember/
+.ansible/
 
 # Project-scoped devcontainer credentials (AWS/Azure/GCP/SSH/kube/Terraform
 # Cloud/Claude Code logins). Never commit real credentials. The directory

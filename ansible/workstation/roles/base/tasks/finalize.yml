@@ -212,6 +212,31 @@
   failed_when: gh_act.rc != 0 and 'already installed' not in ((gh_act.stderr | default('')) ~ (gh_act.stdout | default('')))
   environment: "{{ {'PATH': '/opt/homebrew/bin:/usr/local/bin:' ~ (ansible_facts['env']['PATH'] | default(''))} | combine({'GH_TOKEN': lookup('env', 'GH_TOKEN')} if lookup('env', 'GH_TOKEN') else {}) }}"
 
+- name: Install pre-commit
+  ansible.builtin.command: uv tool install pre-commit
+  register: pre_commit_tool
+  changed_when: "'Installed' in pre_commit_tool.stdout and 'already' not in pre_commit_tool.stdout"
+  environment:
+    PATH: "{{ local_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
+
+- name: Check for a pre-commit git checkout
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ playbook_dir }}/../../.pre-commit-config.yaml"
+    - "{{ playbook_dir }}/../../.git"
+  register: pre_commit_checkout
+
+- name: Install the pre-commit git hook
+  ansible.builtin.command: "{{ local_home }}/.local/bin/pre-commit install"
+  args:
+    chdir: "{{ playbook_dir }}/../.."
+  register: pre_commit_hook
+  changed_when: "'already installed' not in pre_commit_hook.stdout"
+  when:
+    - pre_commit_checkout.results[0].stat.exists
+    - pre_commit_checkout.results[1].stat.exists
+
 - name: Add Cursor plugin marketplaces
   ansible.builtin.command: "cursor-agent plugin marketplace add https://github.com/{{ item }}.git"
   loop: "{{ ai.marketplaces + ['anthropics/claude-plugins-official'] }}"

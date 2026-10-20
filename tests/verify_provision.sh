@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -uo pipefail
+# shellcheck source=tests/lib.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 require_yq
 

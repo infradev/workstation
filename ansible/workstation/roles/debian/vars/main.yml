@@ -124,7 +124,6 @@ pip: []
 
 pipx_packages:
   - "checkov=={{ tool_versions.checkov }}"
-  - pre-commit
 
 tflint_plugins:
   - name: tflint-ruleset-aws

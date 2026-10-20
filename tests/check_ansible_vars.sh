@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -uo pipefail
+# shellcheck source=tests/lib.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 require_yq
 
@@ -42,7 +43,7 @@ while IFS=$'\t' read -r name url; do
   while [[ "${url}" =~ tool_versions\.([A-Za-z0-9_]+) ]]; do
     ref="${BASH_REMATCH[1]}"
     list_has "${ref}" "${versions[@]}" || fail "${name} url uses missing tool_versions.${ref}"
-    url="${url#*tool_versions.${ref}}"
+    url="${url#*tool_versions."${ref}"}"
   done
 done < <(yaml "${DEBIAN_VARS}" '.remote_executables[] | [.name, .url] | @tsv')
 

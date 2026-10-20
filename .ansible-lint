@@ -1,0 +1,6 @@
+# Syntax and load errors. The playbook mixes FQCN and short module names.
+profile: min
+exclude_paths:
+  - .github
+  - .devcontainer
+  - tests

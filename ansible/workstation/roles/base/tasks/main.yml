@@ -5,7 +5,7 @@
     path: "/etc/sudoers.d/{{ user_name }}"
     line: "{{ user_name }} ALL=(ALL) NOPASSWD: ALL"
     state: present
-    mode: 0440
+    mode: "0440"
     create: yes
     validate: "visudo -cf %s"
   become: true

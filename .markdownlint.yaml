@@ -1,0 +1,4 @@
+# Long lines are normal in this README. Do not wrap them.
+MD013: false
+# Ansible and workflow snippets stay as fenced blocks, not HTML.
+MD033: false

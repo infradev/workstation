@@ -1,7 +1,7 @@
 install:
 	# sudo apt-add-repository ppa:ansible/ansible
 	# sudo apt install -y ansible | true
-	ansible-galaxy collection install community.general
+	ansible-galaxy collection install -r ../../requirements.yml
 
 run:
 	@sudo -v
