@@ -8,6 +8,7 @@ Ansible playbook and Dev Container that install one infrastructure toolchain on 
 - [Provision this machine](#provision-this-machine)
 - [Provision a remote Ubuntu host](#provision-a-remote-ubuntu-host)
 - [Open the Dev Container](#open-the-dev-container)
+- [Container limits](#container-limits)
 - [Layout](#layout)
 - [What the playbook installs](#what-the-playbook-installs)
 - [Shell, git, and editor](#shell-git-and-editor)
@@ -16,6 +17,7 @@ Ansible playbook and Dev Container that install one infrastructure toolchain on 
 - [Claude Code plugins](#claude-code-plugins)
 - [Extending a copy of the Dev Container](#extending-a-copy-of-the-dev-container)
 - [Checks](#checks)
+- [Version updates](#version-updates)
 - [Changing the toolchain](#changing-the-toolchain)
 
 ## Requirements
@@ -63,7 +65,11 @@ The `host` tag is the full apt upgrade plus `host_packages` (OpenSSH, certbot, D
 
 The image carries Ansible so that create step can run. Package and binary pins are applied by the Debian role, from `tool_versions` in `ansible/workstation/roles/debian/vars/main.yml`. A workspace without `ansible/workstation` skips the playbook and stays on the base image plus Ansible.
 
-The container user is `alex`, renamed from the base image user `vscode` with the same uid, gid, and group memberships. The workspace is bind-mounted, so git is configured with `safe.directory` for `/workspaces/*`.
+The container user is `alex`, renamed from the base image user `vscode` with the same uid, gid, and group memberships. The workspace and the Claude config directory are bind-mounted, so git trusts repositories under `/workspaces/*` and `/home/alex/.claude/*`. The playbook adds `$HOME/.claude/*` before it installs Claude plugins.
+
+## Container limits
+
+Compose limits the `workstation` service to 2 CPUs and 8 GB of memory. Docker-in-Docker and a kind cluster share that limit.
 
 ## Layout
 
@@ -74,8 +80,10 @@ ansible/workstation/     playbook, local inventory, Makefile
   roles/debian/          apt repos, packages, GitHub binaries, tenv
   roles/macos/           Homebrew formulae, casks, Cursor extensions
 .devcontainer/           image, Compose, lifecycle and auth scripts
+.github/workflows/       workstation, lint, and publish-devcontainer
+.pre-commit-config.yaml  lint and fix hooks
+renovate.json            Saturday version updates
 tests/                   var, settings, image, and provision checks
-.github/workflows/workstation.yml
 ```
 
 ## What the playbook installs
@@ -89,7 +97,7 @@ Role vars are the lists. The playbook and `tests/verify_provision.sh` read them,
 | Apt repositories for one architecture and Ubuntu major version | `ansible/workstation/roles/debian/vars/<arch>-<major>.yml` |
 | Homebrew formulae, casks, and macOS-only editor extensions | `ansible/workstation/roles/macos/vars/main.yml` |
 
-On Ubuntu the Debian role installs the cloud CLIs (AWS, Azure, gcloud, GitHub, GitLab, Session Manager), Kubernetes tools (kubectl, Helm, helmfile, kind, k9s, Krew, kubectx, stern, Argo CD, aws-iam-authenticator), Terraform tools (tenv with pinned Terraform, Terragrunt, and Terramate; tflint plus the AWS, Azure, and GCP rulesets; terraform-docs, infracost, checkov, tfsec, terrascan, sops), and the shell utilities (direnv, nvm, uv, yq, hadolint, trivy, pre-commit, jq). tenv comes from the tofuutils Cloudsmith apt repo at the version in `tool_versions.tenv`.
+On Ubuntu the Debian role installs the cloud CLIs (AWS, Azure, gcloud, GitHub, GitLab, Session Manager), Kubernetes tools (kubectl, Helm, helmfile, kind, k9s, Krew, kubectx, stern, Argo CD, aws-iam-authenticator), Terraform tools (tenv with pinned Terraform, Terragrunt, and Terramate; tflint plus the AWS, Azure, and GCP rulesets; terraform-docs, infracost, checkov, tfsec, terrascan, sops), and the shell utilities (direnv, nvm, uv, yq, hadolint, trivy, jq). tenv comes from the tofuutils Cloudsmith apt repo at the version in `tool_versions.tenv`. Finalize installs pre-commit with `uv` on macOS and Ubuntu, then runs `pre-commit install` when this repository still has a `.git` directory.
 
 On macOS the Homebrew lists cover the same CLI surface, plus casks for Docker Desktop, Cursor, Claude, gcloud, and the desktop apps in `homebrew_cask`. Cursor extensions are `vscode.extensions.common` plus `client_extensions` (Remote SSH and Dev Containers). The Debian host does not run `cursor --install-extension`; the Dev Container installs its extension set from `customizations.vscode` in `.devcontainer/devcontainer.json`.
 
@@ -146,9 +154,7 @@ The mounts start empty. Sign in inside the container and the files stay in that 
 
 Put this `.devcontainer` directory into another repository with `git subtree`. Each checkout keeps its own `.creds` files. Those files stay untracked, so `git push` does not send them. A later pull does not change untracked files in `.creds`.
 
-Publish the directory from this repository after you commit the `.devcontainer` changes:
-
-1. Run `git subtree push --prefix=.devcontainer origin devcontainer`.
+A merge to `main` that changes `.devcontainer` publishes that directory. `.github/workflows/publish-devcontainer.yml` checks out the full history and runs `git subtree push --prefix=.devcontainer origin devcontainer`.
 
 In the other repository, for a first add:
 
@@ -183,6 +189,8 @@ kind runs as a CLI in the dev container. `kind create cluster` uses the Docker d
 
 Add a plugin by appending the marketplace repo (skip this for `claude-plugins-official`) and the `plugin@marketplace` id, then run the playbook again. The marketplace key is the `name` in that repo's `.claude-plugin/marketplace.json`, which can differ from the GitHub repo name.
 
+After those installs, finalize copies `caveman-statusline.sh` into `~/.claude/hooks/` and `ponytail-statusline.sh` into `~/.claude/`. It sets `statusLine` in `~/.claude/settings.json` when both scripts exist. Other keys in that file stay.
+
 Skills that ship as a `SKILL.md` directory, with no marketplace manifest, are `ai.manual_skills` in `roles/base/vars/main.yml`. Finalize clones each one into `~/.claude/skills/` (a sparse checkout when `subpath` is set), links that directory into `~/.cursor/skills/`, and runs `npx apex-skills`. A skill directory that already exists is left in place.
 
 ## Extending a copy of the Dev Container
@@ -201,6 +209,23 @@ Skills that ship as a `SKILL.md` directory, with no marketplace manifest, are `a
 
 `verify_provision.sh` checks packages, pinned binaries, host packages absent after `--skip-tags host`, Krew plugins, and the tenv-managed tools. The provision job passes `GH_TOKEN` from `secrets.GITHUB_TOKEN` so `gh extension install` can reach GitHub.
 
+`.github/workflows/lint.yml` runs on push, pull request, and `workflow_dispatch`. It runs the hooks in `.pre-commit-config.yaml`.
+
+Run the same checks from this repository:
+
+```sh
+pre-commit run --all-files
+```
+
+Run one hook, or only the files you name:
+
+```sh
+pre-commit run shellcheck --all-files
+pre-commit run --files path/to/file
+```
+
+`pre-commit install` wires those checks to `git commit`. Finalize does that when this repository still has a `.git` directory. If `pre-commit` is not on `PATH`, run `uv tool install pre-commit`.
+
 Run the same workflow locally with [act](https://github.com/nektos/act). `.actrc` selects the runner image:
 
 ```sh
@@ -208,6 +233,10 @@ gh act -s GITHUB_TOKEN="$(gh auth token)"
 ```
 
 `tests/lib.sh` downloads `yq` at the pinned version when it is missing. On GitHub the jobs check out the repo. Under act the workspace is already mounted, and those jobs skip `actions/checkout` (`env.ACT != 'true'`).
+
+## Version updates
+
+Renovate opens pull requests on Saturday. `renovate.json` covers GitHub Actions, the Dev Container feature `docker-in-docker`, and `tool_versions`. The `# renovate:` comment above each pin names the release. Do not delete those comments. Renovate turns on GitHub auto-merge. The pull request merges after the required checks pass. Allow auto-merge in the repository settings, and mark the `workstation` and `lint` jobs as required checks. Install the Renovate GitHub App on this repository before that schedule does anything.
 
 ## Changing the toolchain
 
