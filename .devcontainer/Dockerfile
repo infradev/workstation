@@ -11,9 +11,9 @@ USER root
 RUN usermod -l alex -m -d /home/alex vscode \
     && groupmod -n alex vscode \
     && if [ -f /etc/sudoers.d/vscode ]; then \
-         sed -i 's/\bvscode\b/alex/g' /etc/sudoers.d/vscode \
-         && mv /etc/sudoers.d/vscode /etc/sudoers.d/alex; \
-       fi
+      sed -i 's/\bvscode\b/alex/g' /etc/sudoers.d/vscode \
+      && mv /etc/sudoers.d/vscode /etc/sudoers.d/alex; \
+    fi
 
 # Git identity used for commits made inside the container. Ansible's base
 # role sets the same values again when postCreate runs the playbook.
@@ -61,9 +61,11 @@ RUN chmod +x /usr/local/bin/post-start /usr/local/bin/post-create
 # Switch back to the non-root alex user
 USER alex
 
-# The workspace is bind-mounted from the host, so its files are usually owned by
-# a different uid than the container user. Trust every repository under
-# /workspaces so git does not refuse with "detected dubious ownership".
+# Bind-mounted trees are usually owned by a different uid than the container
+# user. Trust every repository under these directories so git does not refuse
+# with "detected dubious ownership". The Claude directory includes the
+# temporary clones created by `claude plugin install`.
 RUN git config --global --add safe.directory "/workspaces/*" \
+    && git config --global --add safe.directory "/home/alex/.claude/*" \
     && git config --global user.name "${GIT_USER_NAME}" \
     && git config --global user.email "${GIT_USER_EMAIL}"

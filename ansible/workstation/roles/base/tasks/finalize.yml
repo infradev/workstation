@@ -77,6 +77,16 @@
           "attributePRsToAgent": false
         },
 
+- name: Read Git safe directories
+  ansible.builtin.command: git config --global --get-all safe.directory
+  register: git_safe_directories
+  changed_when: false
+  failed_when: false
+
+- name: Trust Git repositories under the Claude config directory
+  ansible.builtin.command: git config --global --add safe.directory "{{ local_home }}/.claude/*"
+  when: (local_home ~ '/.claude/*') not in (git_safe_directories.stdout_lines | default([]))
+
 - name: Add Claude Code plugin marketplaces
   ansible.builtin.command: "claude plugin marketplace add {{ item }}"
   loop: "{{ ai.marketplaces }}"
