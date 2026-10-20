@@ -21,7 +21,7 @@ export NVM_DIR="/home/alex/.nvm"
 
 # Display welcome message
 clear
-printf "\e[0;32mTerraform Development Environment: $(basename $PWD)\e[0m\n\n"
+printf '\e[0;32mTerraform Development Environment: %s\e[0m\n\n' "$(basename "${PWD}")"
 
 # Display installed tools and versions
 echo "=== Installed Tools ==="
