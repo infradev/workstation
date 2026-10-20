@@ -25,6 +25,12 @@ services:
     privileged: true
     init: true
     command: sleep infinity
+    # Cap the whole container, including Docker-in-Docker and kind.
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 8G
     container_name: ${COMPOSE_PROJECT_NAME}
     hostname: ${COMPOSE_PROJECT_NAME}
     volumes:
