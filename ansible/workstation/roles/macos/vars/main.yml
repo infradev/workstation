@@ -5,6 +5,7 @@ homebrew:
   - bash
   - bash-completion@2
   - certbot
+  - corepack
   - coreutils
   - crane
   - curl
