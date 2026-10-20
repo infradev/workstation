@@ -104,6 +104,54 @@
   changed_when: true
   ignore_errors: yes
 
+- name: Ensure the Claude hooks directory exists
+  ansible.builtin.file:
+    path: "{{ local_home }}/.claude/hooks"
+    state: directory
+    mode: "0700"
+
+- name: Check Claude statusline sources
+  ansible.builtin.stat:
+    path: "{{ item.src }}"
+  loop:
+    - src: "{{ local_home }}/.claude/plugins/marketplaces/caveman/src/hooks/caveman-statusline.sh"
+      dest: "{{ local_home }}/.claude/hooks/caveman-statusline.sh"
+    - src: "{{ local_home }}/.claude/plugins/marketplaces/ponytail/hooks/ponytail-statusline.sh"
+      dest: "{{ local_home }}/.claude/ponytail-statusline.sh"
+  register: statusline_sources
+
+- name: Install Claude statusline scripts
+  ansible.builtin.copy:
+    src: "{{ item.item.src }}"
+    dest: "{{ item.item.dest }}"
+    mode: "0755"
+    remote_src: true
+  loop: "{{ statusline_sources.results }}"
+  when: item.stat.exists | default(false)
+
+- name: Read Claude settings
+  ansible.builtin.slurp:
+    src: "{{ local_home }}/.claude/settings.json"
+  register: claude_settings_file
+  when: statusline_sources.results | selectattr('stat.exists') | list | length == 2
+
+- name: Build the merged Claude settings
+  ansible.builtin.set_fact:
+    claude_settings: "{{ claude_settings_file.content | b64decode | from_json }}"
+    claude_statusline:
+      type: command
+      command: "in=$(cat); printf '%s' \"$in\" | bash \"$HOME/.claude/hooks/caveman-statusline.sh\"; printf ' '; bash \"$HOME/.claude/ponytail-statusline.sh\" </dev/null"
+  when: statusline_sources.results | selectattr('stat.exists') | list | length == 2
+
+- name: Write the Claude statusLine setting
+  ansible.builtin.copy:
+    dest: "{{ local_home }}/.claude/settings.json"
+    mode: "0600"
+    content: "{{ (claude_settings | combine({'statusLine': claude_statusline})) | to_nice_json(indent=2, sort_keys=False) }}\n"
+  when:
+    - statusline_sources.results | selectattr('stat.exists') | list | length == 2
+    - claude_settings.statusLine | default({}) != claude_statusline
+
 - name: Clone manual Claude skills
   ansible.builtin.git:
     repo: "https://github.com/{{ item.repo }}.git"
