@@ -49,6 +49,7 @@ homebrew_cask:
   - cursor-cli
   - dbeaver-community
   - docker-desktop
+  - firefox
   - gcloud-cli
   - google-chrome
   - google-drive
