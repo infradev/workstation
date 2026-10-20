@@ -4,8 +4,11 @@ install:
 	ansible-galaxy collection install -r ../../requirements.yml
 
 run:
-	@sudo -v
-	ansible-playbook -i inventory ansible.yml
+	@if sudo -n true >/dev/null 2>&1; then \
+		ansible-playbook -i inventory ansible.yml; \
+	else \
+		ansible-playbook -i inventory ansible.yml --ask-become-pass; \
+	fi
 
 # One-time bootstrap on a fresh cloud VM (default user is usually "ubuntu"):
 # creates a passwordless, NOPASSWD-sudo "alex" user with the same SSH

@@ -28,7 +28,7 @@ Ansible playbook and Dev Container that install one infrastructure toolchain on 
 | Ubuntu host | 24.04 or 26.04, `x86_64` or `aarch64`, with `sudo apt-get install -y ansible-core`. Apt repos for those four combinations live in `ansible/workstation/roles/debian/vars/`. |
 | Dev Container | Docker, and Cursor or VS Code with Dev Containers. The image is `mcr.microsoft.com/devcontainers/base`. `VARIANT` in `.devcontainer/.env` selects the tag (`ubuntu26.04`). |
 
-The account that runs the playbook must already be able to `sudo`. `make run` refreshes the sudo timestamp once (`sudo -v`) and then relies on that cache for every `become` task.
+The account that runs the playbook must already be able to `sudo`. The first run has no passwordless sudo yet, so `make run` asks for the sudo password with `--ask-become-pass`. Later runs find the drop-in in `/etc/sudoers.d` and do not ask. Run `make run` in Terminal or iTerm. A window without a terminal cannot show the password prompt.
 
 ## Provision this machine
 
