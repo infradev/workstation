@@ -1,0 +1,29 @@
+# After a merge to main, publish .devcontainer on the devcontainer branch.
+# Other repositories pull that branch with git subtree.
+name: publish-devcontainer
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .devcontainer/**
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-26.04-arm
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Publish the devcontainer branch
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: git subtree push --prefix=.devcontainer origin devcontainer
