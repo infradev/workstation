@@ -3,6 +3,52 @@
 # Runs after the OS role, via import_role in ansible.yml. claude, gh, and
 # on a Mac cursor-agent are already on PATH.
 
+- name: Install gh act extension
+  ansible.builtin.command: gh extension install nektos/gh-act
+  register: gh_act
+  changed_when: gh_act.rc == 0
+  failed_when: gh_act.rc != 0 and 'already installed' not in ((gh_act.stderr | default('')) ~ (gh_act.stdout | default('')))
+  environment: "{{ {'PATH': '/opt/homebrew/bin:/usr/local/bin:' ~ (ansible_facts['env']['PATH'] | default(''))} | combine({'GH_TOKEN': lookup('env', 'GH_TOKEN')} if lookup('env', 'GH_TOKEN') else {}) }}"
+
+- name: Install pre-commit
+  ansible.builtin.command: uv tool install pre-commit
+  register: pre_commit_tool
+  changed_when: "'Installed' in pre_commit_tool.stdout and 'already' not in pre_commit_tool.stdout"
+  environment:
+    PATH: "{{ local_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
+
+- name: Check for a pre-commit git checkout
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ playbook_dir }}/../../.pre-commit-config.yaml"
+    - "{{ playbook_dir }}/../../.git"
+  register: pre_commit_checkout
+
+- name: Install the pre-commit git hook
+  ansible.builtin.command: "{{ local_home }}/.local/bin/pre-commit install"
+  args:
+    chdir: "{{ playbook_dir }}/../.."
+  register: pre_commit_hook
+  changed_when: "'already installed' not in pre_commit_hook.stdout"
+  when:
+    - pre_commit_checkout.results[0].stat.exists
+    - pre_commit_checkout.results[1].stat.exists
+
+- name: Update Krew plugin list
+  ansible.builtin.shell: kubectl krew update
+  environment:
+    KREW_ROOT: "{{ local_home }}/.krew"
+    PATH: "{{ local_home }}/.krew/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
+
+- name: Install Krew plugins
+  ansible.builtin.shell: "kubectl krew install {{ item }}"
+  environment:
+    KREW_ROOT: "{{ local_home }}/.krew"
+    PATH: "{{ local_home }}/.krew/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
+  loop: "{{ krew_plugins }}"
+  when: krew_plugins | length > 0
+
 - name: Ensure Claude and Cursor user config files exist
   ansible.builtin.copy:
     dest: "{{ item.dest }}"
@@ -205,37 +251,21 @@
   changed_when: apex_skills.rc == 0
   failed_when: false
 
-- name: Install gh act extension
-  ansible.builtin.command: gh extension install nektos/gh-act
-  register: gh_act
-  changed_when: gh_act.rc == 0
-  failed_when: gh_act.rc != 0 and 'already installed' not in ((gh_act.stderr | default('')) ~ (gh_act.stdout | default('')))
-  environment: "{{ {'PATH': '/opt/homebrew/bin:/usr/local/bin:' ~ (ansible_facts['env']['PATH'] | default(''))} | combine({'GH_TOKEN': lookup('env', 'GH_TOKEN')} if lookup('env', 'GH_TOKEN') else {}) }}"
-
-- name: Install pre-commit
-  ansible.builtin.command: uv tool install pre-commit
-  register: pre_commit_tool
-  changed_when: "'Installed' in pre_commit_tool.stdout and 'already' not in pre_commit_tool.stdout"
+- name: Install graphify
+  ansible.builtin.command: uv tool install graphifyy
+  register: graphify_tool
+  changed_when: "'Installed' in graphify_tool.stdout and 'already' not in graphify_tool.stdout"
   environment:
     PATH: "{{ local_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
 
-- name: Check for a pre-commit git checkout
-  ansible.builtin.stat:
-    path: "{{ item }}"
+- name: Register graphify with Claude and Cursor
+  ansible.builtin.command: "graphify {{ item }}"
   loop:
-    - "{{ playbook_dir }}/../../.pre-commit-config.yaml"
-    - "{{ playbook_dir }}/../../.git"
-  register: pre_commit_checkout
-
-- name: Install the pre-commit git hook
-  ansible.builtin.command: "{{ local_home }}/.local/bin/pre-commit install"
-  args:
-    chdir: "{{ playbook_dir }}/../.."
-  register: pre_commit_hook
-  changed_when: "'already installed' not in pre_commit_hook.stdout"
-  when:
-    - pre_commit_checkout.results[0].stat.exists
-    - pre_commit_checkout.results[1].stat.exists
+    - install
+    - cursor install
+  changed_when: true
+  environment:
+    PATH: "{{ local_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
 
 - name: Add Cursor plugin marketplaces
   ansible.builtin.command: "cursor-agent plugin marketplace add https://github.com/{{ item }}.git"
@@ -260,20 +290,6 @@
   when:
     - ansible_facts['os_family'] == 'Darwin'
     - cursor_marketplace.results | default([]) | map(attribute='stderr', default='') | select('search', 'Authentication required') | list | length > 0
-
-- name: Update Krew plugin list
-  ansible.builtin.shell: kubectl krew update
-  environment:
-    KREW_ROOT: "{{ local_home }}/.krew"
-    PATH: "{{ local_home }}/.krew/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
-
-- name: Install Krew plugins
-  ansible.builtin.shell: "kubectl krew install {{ item }}"
-  environment:
-    KREW_ROOT: "{{ local_home }}/.krew"
-    PATH: "{{ local_home }}/.krew/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
-  loop: "{{ krew_plugins }}"
-  when: krew_plugins | length > 0
 
 - name: Cursor IDE attribution is a manual setting
   ansible.builtin.debug:

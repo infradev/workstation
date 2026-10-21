@@ -36,10 +36,6 @@ files:
   - path: .claude/CLAUDE.md
     template: CLAUDE.md.j2
     mode: "0644"
-    # Deliberately force:false. A tool like plat-context:setup appends a
-    # managed block to this file after bootstrap; re-running this role must
-    # never clobber that live, engine-owned content.
-    force: false
   - path: .config/direnv/direnvrc
     template: direnvrc.j2
     mode: "0644"
@@ -299,6 +295,9 @@ ai:
     - name: flux-troubleshooting
       repo: foxj77/claude-code-skills
       subpath: flux-troubleshooting
+    - name: grill-with-docs
+      repo: mattpocock/skills
+      subpath: skills/engineering/grill-with-docs
     - name: helm-chart-development
       repo: foxj77/claude-code-skills
       subpath: helm-chart-development
