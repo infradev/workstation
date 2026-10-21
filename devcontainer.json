@@ -1,5 +1,5 @@
 {
-  "name": "Terraform Development Environment",
+  "name": "${localWorkspaceFolderBasename}",
 
   // Build args and sibling services live in compose.yaml. Version pins
   // are in .env, which Compose loads from this directory. kind is installed
