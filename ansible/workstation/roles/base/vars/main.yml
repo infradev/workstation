@@ -251,6 +251,8 @@ ai:
   # Bare SKILL.md folders. They have no marketplace manifest, so they are
   # cloned into ~/.claude/skills/<name>. subpath is a sparse checkout.
   manual_skills:
+    - name: asd-ste100
+      repo: danyuchn/asd-ste100-skill
     - name: aws-resilience-modeling
       repo: aws-samples/sample-aws-resilience-skill
       subpath: aws-resilience-modeling

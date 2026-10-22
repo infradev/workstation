@@ -5,6 +5,7 @@ Instructions for Claude Code. Apply these preferences in every session, across a
 ## Git / commits
 
 - Never commit code, ever. Always wait for explicit user approval first. Only run `git commit` (or push) after the user has confirmed, even for small or already-discussed changes.
+- Write commit messages and PR titles in [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) format: `<type>[optional scope][!]: <description>`.
 - Never sign commits or PR descriptions with Claude:
   - No `Co-Authored-By: Claude ... <noreply@anthropic.com>` trailer on commits.
   - No `Claude-Session: https://claude.ai/code/...` line on commits.
@@ -25,7 +26,8 @@ Instructions for Claude Code. Apply these preferences in every session, across a
 ## Writing style
 
 - Never use em dashes (—) in prose. Use commas, colons, or periods instead, the way people write day to day.
-- For plans, reports, user-facing messages, and tool/skill descriptions, run them through `ste-writing` (ASD-STE100 Simplified Technical English discipline plus its anti-slop linter) and `no-ai-slop` before finalizing.
+- For plans, reports, and user-facing messages, run them through `ste-writing` (ASD-STE100 Simplified Technical English discipline plus its anti-slop linter) and `no-ai-slop` before finalizing.
+- For text an agent or tool parses with no human to resolve ambiguity (tool and skill descriptions, error messages, system prompts, subagent prompts, inter-agent instructions, status reports), use `asd-ste100`. Ask for strict mode on procedures, error messages, and tool descriptions. Ask for STE-flavored mode on READMEs, PR descriptions, and explanatory prose. Ask it to "show the diff" to see each broken rule. Its linter runs as `python ~/.claude/skills/asd-ste100/scripts/ste-lint.py <file>`. It never drops a fact or condition to shorten a sentence. Do not use it for creative or marketing copy.
 
 ## Personality and tone
 
@@ -80,6 +82,7 @@ Manual skills by source:
 - `aws-samples/sample-eks-operation-review-skill`: `eks-operation-review`.
 - `aws-samples/sample-eks-upgrade-skill`: `eks-upgrade-check`.
 - `petergyang/no-ai-slop`: `no-ai-slop`.
+- `danyuchn/asd-ste100-skill`: `asd-ste100`.
 - `cloudflare/security-audit-skill`: `security-audit`.
 - `aws-samples/sample-aws-resilience-skill`: `aws-resilience-modeling`, `aws-rma-assessment`, `aws-well-architected-review`, `chaos-engineering-on-aws`, `cjis-reviewer`, `eks-resilience-checker`, `ferpa-reviewer`, `selfhosted-stack-analyzer`.
 - `foxj77/claude-code-skills` (Kubernetes/GitOps troubleshooting and platform-ops): `cert-manager-troubleshooting`, `external-dns-troubleshooting`, `external-secrets-troubleshooting`, `flux-gitops-patterns`, `flux-operations`, `flux-troubleshooting`, `helm-chart-development`, `helm-chart-maintenance`, `helm-chart-review`, `helm-chart-testing`, `k8s-continual-improvement`, `k8s-dns-troubleshooting`, `k8s-namespace-troubleshooting`, `k8s-network-troubleshooting`, `k8s-platform-operations`, `k8s-platform-tenancy`, `k8s-security-hardening`, `k8s-security-redteam`, `kyverno-troubleshooting`.

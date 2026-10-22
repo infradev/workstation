@@ -49,26 +49,22 @@
   loop: "{{ krew_plugins }}"
   when: krew_plugins | length > 0
 
-- name: Ensure Claude and Cursor user config files exist
+- name: Install graphify
+  ansible.builtin.command: uv tool install graphifyy
+  register: graphify_tool
+  changed_when: "'Installed' in graphify_tool.stdout and 'already' not in graphify_tool.stdout"
+  environment:
+    PATH: "{{ local_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
+
+- name: Ensure the Claude user settings file exists
   ansible.builtin.copy:
-    dest: "{{ item.dest }}"
-    content: "{{ item.content }}"
+    dest: "{{ local_home }}/.claude/settings.json"
+    content: |
+      {
+        "includeCoAuthoredBy": false
+      }
     force: false
     mode: "0600"
-  loop:
-    - dest: "{{ local_home }}/.claude/settings.json"
-      content: |
-        {
-          "includeCoAuthoredBy": false
-        }
-    - dest: "{{ local_home }}/.cursor/cli-config.json"
-      content: |
-        {
-          "attribution": {
-            "attributeCommitsToAgent": false,
-            "attributePRsToAgent": false
-          }
-        }
 
 - name: Fill an empty Claude settings file
   ansible.builtin.replace:
@@ -79,30 +75,11 @@
         "includeCoAuthoredBy": false
       }
 
-- name: Fill an empty Cursor CLI config
+- name: Turn off the Claude signature flag
   ansible.builtin.replace:
-    path: "{{ local_home }}/.cursor/cli-config.json"
-    regexp: '(?s)\A\s*\{\s*\}\s*\Z'
-    replace: |
-      {
-        "attribution": {
-          "attributeCommitsToAgent": false,
-          "attributePRsToAgent": false
-        }
-      }
-
-- name: Turn off agent signature flags
-  ansible.builtin.replace:
-    path: "{{ item.path }}"
-    regexp: '("{{ item.key }}"\s*:\s*)true\b'
+    path: "{{ local_home }}/.claude/settings.json"
+    regexp: '("includeCoAuthoredBy"\s*:\s*)true\b'
     replace: '\1false'
-  loop:
-    - path: "{{ local_home }}/.claude/settings.json"
-      key: includeCoAuthoredBy
-    - path: "{{ local_home }}/.cursor/cli-config.json"
-      key: attributeCommitsToAgent
-    - path: "{{ local_home }}/.cursor/cli-config.json"
-      key: attributePRsToAgent
 
 - name: Add includeCoAuthoredBy when Claude settings omit it
   ansible.builtin.replace:
@@ -112,16 +89,27 @@
       {
         "includeCoAuthoredBy": false,
 
-- name: Add Cursor attribution when the CLI config omits it
-  ansible.builtin.replace:
-    path: "{{ local_home }}/.cursor/cli-config.json"
-    regexp: '(?s)\A\{(?!.*?"attributeCommitsToAgent")\n'
-    replace: |
-      {
-        "attribution": {
-          "attributeCommitsToAgent": false,
-          "attributePRsToAgent": false
-        },
+# Same effect as claude --dangerously-skip-permissions --model opusplan on every launch.
+- name: Read Claude settings for the permission mode
+  ansible.builtin.slurp:
+    src: "{{ local_home }}/.claude/settings.json"
+  register: claude_permission_settings_file
+
+- name: Build the Claude permission mode settings
+  ansible.builtin.set_fact:
+    claude_permission_settings: "{{ claude_permission_settings_file.content | b64decode | from_json }}"
+    claude_permission_mode:
+      model: opusplan
+      permissions:
+        defaultMode: bypassPermissions
+      skipDangerousModePermissionPrompt: true
+
+- name: Write the Claude bypassPermissions mode
+  ansible.builtin.copy:
+    dest: "{{ local_home }}/.claude/settings.json"
+    mode: "0600"
+    content: "{{ (claude_permission_settings | combine(claude_permission_mode, recursive=true)) | to_nice_json(indent=2, sort_keys=False) }}\n"
+  when: (claude_permission_settings | combine(claude_permission_mode, recursive=true)) != claude_permission_settings
 
 - name: Read Git safe directories
   ansible.builtin.command: git config --global --get-all safe.directory
@@ -223,15 +211,6 @@
   loop: "{{ ai.manual_skills | selectattr('subpath', 'defined') | list }}"
   ignore_errors: yes
 
-- name: Link manual skills into Cursor
-  ansible.builtin.file:
-    src: "{{ local_home }}/.claude/skills/{{ item.name }}"
-    dest: "{{ local_home }}/.cursor/skills/{{ item.name }}"
-    state: link
-    force: true
-  loop: "{{ ai.manual_skills }}"
-  ignore_errors: yes
-
 - name: Install apex-skills
   ansible.builtin.shell: |
     set -euo pipefail
@@ -251,18 +230,68 @@
   changed_when: apex_skills.rc == 0
   failed_when: false
 
-- name: Install graphify
-  ansible.builtin.command: uv tool install graphifyy
-  register: graphify_tool
-  changed_when: "'Installed' in graphify_tool.stdout and 'already' not in graphify_tool.stdout"
+- name: Register graphify with Claude
+  ansible.builtin.command: graphify install
+  changed_when: true
   environment:
     PATH: "{{ local_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
 
-- name: Register graphify with Claude and Cursor
-  ansible.builtin.command: "graphify {{ item }}"
+- name: Ensure the Cursor CLI config file exists
+  ansible.builtin.copy:
+    dest: "{{ local_home }}/.cursor/cli-config.json"
+    content: |
+      {
+        "attribution": {
+          "attributeCommitsToAgent": false,
+          "attributePRsToAgent": false
+        }
+      }
+    force: false
+    mode: "0600"
+
+- name: Fill an empty Cursor CLI config
+  ansible.builtin.replace:
+    path: "{{ local_home }}/.cursor/cli-config.json"
+    regexp: '(?s)\A\s*\{\s*\}\s*\Z'
+    replace: |
+      {
+        "attribution": {
+          "attributeCommitsToAgent": false,
+          "attributePRsToAgent": false
+        }
+      }
+
+- name: Turn off Cursor signature flags
+  ansible.builtin.replace:
+    path: "{{ local_home }}/.cursor/cli-config.json"
+    regexp: '("{{ item }}"\s*:\s*)true\b'
+    replace: '\1false'
   loop:
-    - install
-    - cursor install
+    - attributeCommitsToAgent
+    - attributePRsToAgent
+
+- name: Add Cursor attribution when the CLI config omits it
+  ansible.builtin.replace:
+    path: "{{ local_home }}/.cursor/cli-config.json"
+    regexp: '(?s)\A\{(?!.*?"attributeCommitsToAgent")\n'
+    replace: |
+      {
+        "attribution": {
+          "attributeCommitsToAgent": false,
+          "attributePRsToAgent": false
+        },
+
+- name: Link manual skills into Cursor
+  ansible.builtin.file:
+    src: "{{ local_home }}/.claude/skills/{{ item.name }}"
+    dest: "{{ local_home }}/.cursor/skills/{{ item.name }}"
+    state: link
+    force: true
+  loop: "{{ ai.manual_skills }}"
+  ignore_errors: yes
+
+- name: Register graphify with Cursor
+  ansible.builtin.command: graphify cursor install
   changed_when: true
   environment:
     PATH: "{{ local_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts['env']['PATH'] | default('') }}"
