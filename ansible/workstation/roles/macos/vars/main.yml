@@ -1,4 +1,5 @@
 homebrew:
+  - age
   - ansible
   - aws-iam-authenticator
   - awscli
@@ -54,6 +55,7 @@ homebrew_cask:
   - gcloud-cli
   - google-chrome
   - google-drive
+  - granola
   - iterm2
   - microsoft-teams
   - multipass
