@@ -77,6 +77,7 @@ vscode:
       - googlecloudtools.cloudcode
       - hashicorp.hcl
       - hashicorp.terraform
+      - hverlin.mise-vscode
       - mhutchie.git-graph
       - mineiros.terramate
       - moshfeu.compare-folders
@@ -131,6 +132,11 @@ vscode:
       "git.autofetch": "all",
       "git.enableSmartCommit": true,
       "git.confirmSync": false,
+      "git.autoRepositoryDetection": true,
+      "git.openRepositoryInParentFolders": "always",
+      "git.repositoryScanMaxDepth": -1,
+      "scm.alwaysShowRepositories": true,
+      "scm.repositories.visible": 0,
 
       // Terminal settings
       "terminal.integrated.scrollback": 100000,
