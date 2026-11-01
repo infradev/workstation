@@ -4,99 +4,77 @@ Instructions for Claude Code. Apply these preferences in every session, across a
 
 ## Git / commits
 
-- Never commit code, ever. Always wait for explicit user approval first. Only run `git commit` (or push) after the user has confirmed, even for small or already-discussed changes.
+- Never commit or push code without explicit user approval, even for small or already-discussed changes.
 - Write commit messages and PR titles in [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) format: `<type>[optional scope][!]: <description>`.
-- Never sign commits or PR descriptions with Claude:
-  - No `Co-Authored-By: Claude ... <noreply@anthropic.com>` trailer on commits.
-  - No `Claude-Session: https://claude.ai/code/...` line on commits.
-  - No "Generated with Claude Code" footer or session URL in PR bodies or issue text.
-- Never sign commits or PR descriptions with Cursor:
-  - No `Co-authored-by: Cursor <cursoragent@cursor.com>` trailer on commits.
-  - No similar Cursor co-author trailers, attribution footers, or session URLs in commits, PR bodies, or issue text.
+- Never sign commits, PR bodies, or issue text as Claude or Cursor: no `Co-Authored-By`/`Co-authored-by` trailers (`noreply@anthropic.com`, `cursoragent@cursor.com`), no `Claude-Session:` line, no "Generated with Claude Code" footer, no session URL.
 
 ## Code comments
 
-- Comments must describe only the final resource/code as it stands. Never narrate historical changes ("no longer", "used to", "instead of", "was removed", "still", "NOT deleted", "kept"). If something changes, rewrite the comment to describe the new state directly, don't diff it against the old one.
+- Comments describe only the final code as it stands. Never narrate history ("no longer", "used to", "instead of", "was removed", "still", "kept"). When something changes, rewrite the comment for the new state.
 
 ## Markdown formatting
 
-- Never hard-wrap text inside a paragraph (inserting a newline at ~70-80 chars like typed prose). Write each paragraph as a single line, regardless of length. This applies to PR/commit descriptions, Slack and Teams messages, issue comments, and any other markdown that gets rendered. GitHub and Slack render single newlines as visible line breaks, so hard-wrapping shows up as broken mid-sentence lines instead of a clean paragraph.
-- Only break lines for actual structure: separate paragraphs (blank line between them), list items, headers, code blocks, etc. A message with several distinct points needs that structure, not one long paragraph.
+- Never hard-wrap inside a paragraph. Write each paragraph as one line, because GitHub and Slack render single newlines as visible breaks. This applies to PR/commit descriptions, Slack and Teams messages, issue comments, and any rendered markdown.
+- Break lines only for structure: paragraphs, list items, headers, code blocks. Several distinct points need that structure, not one long paragraph.
 
 ## Writing style
 
-- Never use em dashes (—) in prose. Use commas, colons, or periods instead, the way people write day to day.
-- For plans, reports, and user-facing messages, run them through `ste-writing` (ASD-STE100 Simplified Technical English discipline plus its anti-slop linter) and `no-ai-slop` before finalizing.
-- For text an agent or tool parses with no human to resolve ambiguity (tool and skill descriptions, error messages, system prompts, subagent prompts, inter-agent instructions, status reports), use `asd-ste100`. Ask for strict mode on procedures, error messages, and tool descriptions. Ask for STE-flavored mode on READMEs, PR descriptions, and explanatory prose. Ask it to "show the diff" to see each broken rule. Its linter runs as `python ~/.claude/skills/asd-ste100/scripts/ste-lint.py <file>`. It never drops a fact or condition to shorten a sentence. Do not use it for creative or marketing copy.
+- Never use em dashes (—) in prose. Use commas, colons, or periods.
+- Human-facing text (plans, reports, user-facing messages): `asd-ste100` in STE-flavored mode, then `humanizer`.
+- Text an agent or tool parses (tool and skill descriptions, error messages, system prompts, subagent prompts, inter-agent instructions, status reports): `asd-ste100`, strict mode for procedures, error messages, and tool descriptions.
+- Not for creative or marketing copy.
 
 ## Personality and tone
 
-Three non-competing skills, each at a different layer. Use all three in chat replies:
+Use all three in chat replies, each at its own layer:
 
-- `caveman` (language layer): strip filler, polite fluff, and unnecessary prose from the chat reply itself. Code is untouched. This only shrinks what has to be read, not what gets written.
-- `ponytail` (architecture/code layer): take the laziest, most direct path. Before adding code or a dependency, ask whether it needs to exist at all. Prefer built-in platform features and native tools over new packages. Fewer lines, fewer tokens spent executing.
-- `i-have-adhd` (structure layer): lead with the answer or action item, not a wind-up. Don't bury the solution at the end of an explanation. For open-ended problems, brainstorm via independent parallel threads rather than one linear chain.
+- `caveman` (language): strip filler from the reply. Code is untouched.
+- `ponytail` (code): take the laziest, most direct path. Prefer built-in features over new packages.
+- `i-have-adhd` (structure): lead with the answer or action item. Brainstorm open-ended problems in independent parallel threads.
 
-Scope: chat replies only. Persisted artifacts (commits, PRs, issues, docs, memory files, Slack and Teams messages) stay in normal prose with whatever tone that artifact's own section specifies (e.g. Slack and Teams messages below). Don't carry caveman's compression into those.
+Scope: chat replies only. Persisted artifacts (commits, PRs, issues, docs, memory files, Slack and Teams messages) stay in normal prose. Don't carry caveman's compression into them.
 
 ## Terraform
 
-- Never upgrade or install Terraform via brew. Always set the Terraform version with [tenv](https://github.com/tofuutils/tenv) (`tenv terraform install <version>`), and run terraform via the tenv-managed binary so it matches each project's `required_version` constraint.
-- For AWS resources, primarily use registry modules from [terraform-aws-modules](https://github.com/terraform-aws-modules) and [aws-ia](https://github.com/aws-ia) instead of hand-writing raw resources, whenever a suitable module exists.
-- Three distinct Terraform tools, pick by task: `terraform-generator` to write new `.tf`/HCL (see DevOps skills below), `terraform-validator` to lint/audit it (tflint, checkov), and `terraform` (MCP) for plan previews, state inspection, module docs, or drift detection on code that already exists.
-- Same split for Terragrunt: `terragrunt-skill` for architecture (stacks, units, catalog patterns, CI/CD pipelines, AWS/GCP OIDC, multi-account layouts); `terragrunt-generator`/`terragrunt-validator` for quick single-file HCL generation/linting (see DevOps skills below).
+- Never upgrade or install Terraform via brew. Set the version with [tenv](https://github.com/tofuutils/tenv) (`tenv terraform install <version>`) and run the tenv-managed binary, so it matches each project's `required_version`.
+- For AWS resources, prefer registry modules from [terraform-aws-modules](https://github.com/terraform-aws-modules) and [aws-ia](https://github.com/aws-ia) over raw resources whenever a suitable module exists.
+- Pick by task: `terraform-generator` writes new `.tf`/HCL, `terraform-validator` lints/audits it (tflint, checkov), `terraform` (MCP) handles plan previews, state inspection, module docs, and drift detection on existing code.
+- Terragrunt: `terragrunt-skill` for architecture (stacks, units, catalog patterns, CI/CD, AWS/GCP OIDC, multi-account layouts); `terragrunt-generator`/`terragrunt-validator` for single-file HCL.
 
 ## Skill triggers
 
 - After writing or modifying code, use `code-simplifier` before declaring the task done.
-- For AWS IAM, Secrets Manager, CloudFormation/CDK, containers, or observability work, use `aws-core`.
-- For up-to-date library/API documentation instead of relying on training-cutoff knowledge, use `context7`.
-- For writing or pressure-testing documentation against the actual code, use `grill-with-docs`.
-- For codebase structure, dependency, or "where does X connect" questions, run `/graphify` once to build the graph, then use `graphify query` before broad file searches.
-- When debugging, use `superpowers:systematic-debugging`; before declaring a task done, use `superpowers:verification-before-completion`; for planning complex work, use `superpowers:writing-plans`.
-- For ML-training-focused work, use `andrej-karpathy-skills`.
-- For Kubernetes manifests/Helm/Kustomize/cluster policies, use `kubernetes-skill` when the work is security/reliability-sensitive (insecure defaults, resource starvation, network exposure, privilege sprawl, fragile rollouts, API drift); use `k8s-yaml-generator`/`k8s-yaml-validator` (see DevOps skills below) for quick, low-stakes manifest scaffolding/linting instead.
+- AWS IAM, Secrets Manager, CloudFormation/CDK, containers, observability: `aws-core`.
+- Up-to-date library/API docs instead of training-cutoff knowledge: `context7`.
+- Writing or pressure-testing documentation against the code: `grill-with-docs`.
+- Codebase structure, dependency, or "where does X connect" questions: run `/graphify` once, then `graphify query` before broad file searches.
+- Debugging: `superpowers:systematic-debugging`. Before declaring done: `superpowers:verification-before-completion`. Planning complex work: `superpowers:writing-plans`.
+- ML-training work: `andrej-karpathy-skills`.
+- Kubernetes manifests/Helm/Kustomize/policies: `kubernetes-skill` for security/reliability-sensitive work (insecure defaults, resource starvation, network exposure, privilege sprawl, fragile rollouts, API drift). `k8s-yaml-generator`/`k8s-yaml-validator` for quick, low-stakes scaffolding/linting.
 
 ## DevOps skills (`devops-skills@akin-ozer`)
 
-Most domains have a `<domain>-generator` (write/scaffold new files) and a `<domain>-validator` (lint/audit/fix existing ones). Use the generator when creating, the validator when checking. Domains: `ansible`, `azure-pipelines`, `bash-script` (ShellCheck), `dockerfile`, `fluentbit`, `github-actions`, `gitlab-ci`, `helm`, `jenkinsfile`, `k8s-yaml`, `makefile`, `promql`, `terraform` (tflint, checkov), `terragrunt` (single-file `.hcl`).
+Most domains have a `<domain>-generator` (create) and a `<domain>-validator` (lint/audit/fix). Domains: `ansible`, `azure-pipelines`, `bash-script`, `dockerfile`, `fluentbit`, `github-actions`, `gitlab-ci`, `helm`, `jenkinsfile`, `k8s-yaml`, `makefile`, `promql`, `terraform`, `terragrunt`.
 
-- Generate-only, no validator: `logql-generator` (Grafana Loki LogQL) and `loki-config-generator` (Loki server configs).
-- Standalone: `k8s-debug` diagnoses a *running* cluster via `kubectl`. For manifest files, not live state, use `k8s-yaml-generator`/`k8s-yaml-validator`.
+- Generate-only: `logql-generator` (Loki LogQL), `loki-config-generator` (Loki server configs).
+- `k8s-debug` diagnoses a *running* cluster via `kubectl`. For manifest files use `k8s-yaml-generator`/`k8s-yaml-validator`.
 
-## Manual-install skills (not `/plugin`-installable)
+## Manual-install skills
 
-These ship as bare `SKILL.md` folders, not plugin marketplaces (no `.claude-plugin/marketplace.json`). The base role clones each `ai.manual_skills` entry into `~/.claude/skills/<name>/`, links it into `~/.cursor/skills/<name>/`, and runs `npx apex-skills` for `aws-samples/sample-apex-skills`. Each skill's own description says when to use it. Routing notes:
+Bare `SKILL.md` folders from `ai.manual_skills` (cloned into `~/.claude/skills/`, linked into `~/.cursor/skills/`). Routing notes:
 
-- `eks-operation-review` audits the current health of a live EKS cluster. `eks-upgrade-check` scores upgrade readiness. Use the first for "how is the cluster", the second for "about to upgrade".
-- `k8s-debug` (devops-skills) first for a quick, broad look. Use `k8s-dns-troubleshooting`, `k8s-network-troubleshooting`, or `k8s-namespace-troubleshooting` when the problem is already DNS-, network-, or namespace-scoped, or `k8s-debug` didn't resolve it.
-- `aws-well-architected-review` exists twice: the manual copy and the one in `aws-core@claude-plugins-official`. Prefer the `aws-core` one.
+- `eks-operation-review` audits a live EKS cluster ("how is the cluster"). `eks-upgrade-check` scores upgrade readiness ("about to upgrade").
+- `k8s-debug` first for a broad look. Use `k8s-dns-troubleshooting`, `k8s-network-troubleshooting`, or `k8s-namespace-troubleshooting` when the problem is already DNS-, network-, or namespace-scoped, or `k8s-debug` didn't resolve it.
 - `eks-resilience-checker` output feeds `chaos-engineering-on-aws`.
 - `security-audit` is clone-only. It is not the official `security-guidance` plugin.
-- `no-ai-slop` pairs with `ste-writing` (see Writing style above).
-
-Manual skills by source:
-
-- `mattpocock/skills`: `grill-with-docs`.
-- `aws-samples/sample-apex-skills`: `apex-skills` (25+ AWS platform-engineering skills, own npx installer).
-- `aws-samples/sample-eks-operation-review-skill`: `eks-operation-review`.
-- `aws-samples/sample-eks-upgrade-skill`: `eks-upgrade-check`.
-- `petergyang/no-ai-slop`: `no-ai-slop`.
-- `ComposioHQ/composio`: `composio`.
-- `danyuchn/asd-ste100-skill`: `asd-ste100`.
-- `cloudflare/security-audit-skill`: `security-audit`.
-- `aws-samples/sample-aws-resilience-skill`: `aws-resilience-modeling`, `aws-rma-assessment`, `aws-well-architected-review`, `chaos-engineering-on-aws`, `cjis-reviewer`, `eks-resilience-checker`, `ferpa-reviewer`, `selfhosted-stack-analyzer`.
-- `foxj77/claude-code-skills` (Kubernetes/GitOps troubleshooting and platform-ops): `cert-manager-troubleshooting`, `external-dns-troubleshooting`, `external-secrets-troubleshooting`, `flux-gitops-patterns`, `flux-operations`, `flux-troubleshooting`, `helm-chart-development`, `helm-chart-maintenance`, `helm-chart-review`, `helm-chart-testing`, `k8s-continual-improvement`, `k8s-dns-troubleshooting`, `k8s-namespace-troubleshooting`, `k8s-network-troubleshooting`, `k8s-platform-operations`, `k8s-platform-tenancy`, `k8s-security-hardening`, `k8s-security-redteam`, `kyverno-troubleshooting`.
+- `composio` routes Composio work. The `composio-mcp` plugin (Claude) and the `composio` MCP server (Cursor) supply the tools.
 
 ## Slack and Microsoft Teams messages
 
-These rules apply to every Slack message and every Microsoft Teams message (chat, channel post, or reply).
+Rules for every Slack message and Teams message (chat, channel post, or reply).
 
-- Always create the message as a draft. Never send it directly. Sending is the user's call.
-- Audience is developers and tech managers. Keep the tone friendly.
-- Shrink every Slack message to short, direct text, no filler.
-- Use bold for highlights: the key point, a name, a number worth catching the eye.
-- Format the message for scanning: a one-line opener, then short blocks with a bold label (for example **Issue**, **Plan**, **Need from you**). Put a blank line between blocks.
-- Use a numbered list for sequential steps and bullets for parallel items. Keep each item to one line.
-- Single-line paragraphs still apply: never wrap a sentence mid-line, but never merge separate blocks or list items into one paragraph.
-- Run the message through the `humanizer` and `no-ai-slop` skills before drafting, to strip AI-sounding phrasing.
+- Always create it as a draft. Never send it. Sending is the user's call.
+- Audience is developers and tech managers. Friendly tone, short direct text, no filler.
+- Open with one line, then short blocks with a bold label (for example **Issue**, **Plan**, **Need from you**), a blank line between blocks. Use bold for the key point, a name, or a number.
+- Numbered list for sequential steps, bullets for parallel items, one line per item.
+- Run it through `humanizer` before drafting.

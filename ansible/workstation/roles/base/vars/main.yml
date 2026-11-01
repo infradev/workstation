@@ -222,7 +222,6 @@ ai:
     - LukasNiessen/kubernetes-skill
     # Monorepo of skills, not single-skill-per-repo. Marketplace key unconfirmed (see README).
     - mattpocock/skills
-    - thought-stuff/claude-ste
   plugins:
     - andrej-karpathy-skills@karpathy-skills
     - atlassian@claude-plugins-official
@@ -250,7 +249,6 @@ ai:
     - remember@claude-plugins-official
     - security-guidance@claude-plugins-official
     - slack@claude-plugins-official
-    - ste-writing@thought-stuff
     - superpowers@claude-plugins-official
     - supabase@claude-plugins-official
     - terraform@claude-plugins-official
@@ -273,9 +271,6 @@ ai:
     - name: aws-rma-assessment
       repo: aws-samples/sample-aws-resilience-skill
       subpath: aws-rma-assessment
-    - name: aws-well-architected-review
-      repo: aws-samples/sample-aws-resilience-skill
-      subpath: aws-well-architected-review
     - name: cert-manager-troubleshooting
       repo: foxj77/claude-code-skills
       subpath: cert-manager-troubleshooting
@@ -356,9 +351,6 @@ ai:
     - name: kyverno-troubleshooting
       repo: foxj77/claude-code-skills
       subpath: kyverno-troubleshooting
-    - name: no-ai-slop
-      repo: petergyang/no-ai-slop
-      subpath: skills/no-ai-slop
     - name: security-audit
       repo: cloudflare/security-audit-skill
       subpath: skills/security-audit
