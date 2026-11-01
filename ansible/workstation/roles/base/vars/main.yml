@@ -210,6 +210,8 @@ ai:
     - ayghri/i-have-adhd
     # Already in active use. Required by ~/.claude/CLAUDE.md for Slack messages.
     - blader/humanizer
+    # Composio MCP plugin (composio-mcp). Authenticates with OAuth on first use, no API key.
+    - ComposioHQ/composio-plugin-cc
     # Tier 3 (personal/style). Marketplace key unconfirmed; best-guess install.
     - dietrichgebert/ponytail
     # Off-target for this role (ML-training), requested anyway.
@@ -232,6 +234,7 @@ ai:
     - code-review@claude-plugins-official
     - code-simplifier@claude-plugins-official
     - commit-commands@claude-plugins-official
+    - composio-mcp@composio
     - context7@claude-plugins-official
     - databases-on-aws@claude-plugins-official
     - devops-skills@akin-ozer
@@ -253,6 +256,11 @@ ai:
     - terraform@claude-plugins-official
     - terragrunt-skill@jfr992
     - vanta@claude-plugins-official
+
+  # Remote MCP servers written to ~/.cursor/mcp.json. Cursor starts the OAuth flow on first use.
+  cursor_mcp_servers:
+    composio:
+      url: https://connect.composio.dev/mcp
 
   # Bare SKILL.md folders. They have no marketplace manifest, so they are
   # cloned into ~/.claude/skills/<name>. subpath is a sparse checkout.
@@ -277,6 +285,9 @@ ai:
     - name: cjis-reviewer
       repo: aws-samples/sample-aws-resilience-skill
       subpath: cjis-reviewer
+    - name: composio
+      repo: ComposioHQ/composio
+      subpath: skills/composio
     - name: eks-operation-review
       repo: aws-samples/sample-eks-operation-review-skill
     - name: eks-resilience-checker

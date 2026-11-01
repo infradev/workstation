@@ -320,6 +320,28 @@
     - ansible_facts['os_family'] == 'Darwin'
     - cursor_marketplace.results | default([]) | map(attribute='stderr', default='') | select('search', 'Authentication required') | list | length > 0
 
+- name: Ensure the Cursor MCP config file exists
+  ansible.builtin.copy:
+    dest: "{{ local_home }}/.cursor/mcp.json"
+    content: "{}\n"
+    force: false
+    mode: "0600"
+
+- name: Read the Cursor MCP config
+  ansible.builtin.slurp:
+    src: "{{ local_home }}/.cursor/mcp.json"
+  register: cursor_mcp_file
+
+- name: Merge MCP servers into the Cursor MCP config
+  ansible.builtin.copy:
+    dest: "{{ local_home }}/.cursor/mcp.json"
+    mode: "0600"
+    content: "{{ cursor_mcp | to_nice_json(indent=2, sort_keys=False) }}\n"
+  vars:
+    cursor_mcp_current: "{{ cursor_mcp_file.content | b64decode | from_json }}"
+    cursor_mcp: "{{ cursor_mcp_current | combine({'mcpServers': (cursor_mcp_current.mcpServers | default({})) | combine(ai.cursor_mcp_servers)}) }}"
+  when: cursor_mcp != cursor_mcp_current
+
 - name: Cursor IDE attribution is a manual setting
   ansible.builtin.debug:
     msg: |
