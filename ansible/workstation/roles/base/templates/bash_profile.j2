@@ -80,5 +80,7 @@ export GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token | tr -d '[:space:]')"
 ulimit -n 10240
 uname -n -r -m
 
-
 . "$HOME/.bash_aliases"
+
+# local overrides, never managed by Ansible
+[ -f "$HOME/.bash_local" ] && . "$HOME/.bash_local"
