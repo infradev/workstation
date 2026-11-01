@@ -74,8 +74,8 @@ export HISTFILESIZE=1000000
 export HISTSIZE=1000000
 export HISTTIMEFORMAT="%F %T "
 
-# AI
-export ANTHROPIC_MODEL="opusplan"
+# logins
+export GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token | tr -d '[:space:]')"
 
 ulimit -n 10240
 uname -n -r -m
