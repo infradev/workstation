@@ -223,15 +223,31 @@ vscode:
       // Spell checker settings
       "cSpell.enabled": true,
       "cSpell.words": [
+        "aquasecurity",
         "azurerm",
         "checkov",
         "devcontainer",
         "gcloud",
+        "hadolint",
+        "helmfile",
         "infracost",
+        "k9s",
+        "krew",
+        "kubeconfig",
+        "kubectx",
+        "kubens",
+        "nvm",
+        "pipx",
+        "postgresql",
+        "sops",
+        "tenv",
         "terragrunt",
+        "terramate",
         "terrascan",
         "tflint",
-        "tfsec"
+        "tfsec",
+        "tofu",
+        "trivy"
       ],
 
       // Terraform settings
