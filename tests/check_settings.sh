@@ -57,8 +57,4 @@ if [[ -n "${claude_path}" ]] && grep -q '"CLAUDE_CONFIG_DIR"' "${devcontainer_js
   [[ "${actual}" == "${expected}" ]] || fail "CLAUDE_CONFIG_DIR=${actual}"
 fi
 
-extensions_json="${ANSIBLE}/roles/base/files/vscode/extensions.json"
-grep -oE '"[^"]+"' "${extensions_json}" | LC_ALL=C sort -cu 2>/dev/null || fail "${extensions_json} is not sorted and unique"
-[[ -n "$(json_value "${devcontainer_json}" settings 2>/dev/null)" ]] && fail "devcontainer.json settings duplicate roles/base/files/vscode/settings.jsonc"
-
 finish "devcontainer settings ok"

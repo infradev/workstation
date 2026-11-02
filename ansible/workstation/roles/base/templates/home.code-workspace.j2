@@ -1,12 +1,3 @@
-{%- set darwin_terminal -%}
-,
-
-  "terminal.integrated.profiles.linux": {
-    "bash": {
-      "path": "{{ '/opt/homebrew' if ansible_facts['architecture'] == 'arm64' else '/usr/local' }}/bin/bash"
-    }
-  }
-{%- endset -%}
 {
   "folders": [
     {
@@ -16,5 +7,5 @@
       "path": "projects"
     }
   ],
-  "settings": {{ ((vscode.settings | trim)[:-1] | trim ~ (darwin_terminal if ansible_facts['os_family'] == 'Darwin' else '') ~ '\n}') | indent(2) }}
+  "settings": {{ vscode.settings | trim | indent(2) }}
 }
