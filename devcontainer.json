@@ -34,8 +34,10 @@
         "eamodio.gitlens",
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
+        "googlecloudtools.cloudcode",
         "hashicorp.hcl",
         "hashicorp.terraform",
+        "hverlin.mise-vscode",
         "mhutchie.git-graph",
         "mineiros.terramate",
         "moshfeu.compare-folders",
@@ -94,6 +96,23 @@
         "git.autofetch": "all",
         "git.enableSmartCommit": true,
         "git.confirmSync": false,
+
+        // Git repository detection
+        // Open git only when a workspace folder is itself a repository.
+        // Do not scan nested folders. Skip every folder named .devcontainer.
+        "git.autoRepositoryDetection": false,
+        "git.openRepositoryInParentFolders": "never",
+        "git.repositoryScanMaxDepth": 0,
+        "git.repositoryScanIgnoredFolders": [
+          "node_modules",
+          ".devcontainer"
+        ],
+
+        // Source Control view
+        // Tree is folders for files inside a repo. Path sorts those files and the repo list.
+        "scm.defaultViewMode": "tree",
+        "scm.defaultViewSortKey": "path",
+        "scm.repositories.sortOrder": "path",
 
         // Terminal settings
         "terminal.integrated.scrollback": 100000,
