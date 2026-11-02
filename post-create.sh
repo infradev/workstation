@@ -19,13 +19,12 @@ else
   PLAYBOOK_DIR="${clone}/ansible/workstation"
 fi
 
-cd "${PLAYBOOK_DIR}"
-ansible-playbook -i inventory ansible.yml --skip-tags host
-
-# Shared editor config (also read by the Ansible base role). The settings go
-# to the machine-scope file of each server flavor; extensions go through the
-# server CLI, which exists once the editor has attached. Missing CLI is not
-# fatal: the extensions can be installed from the editor later.
+# Shared editor config (also read by the Ansible base role). It runs before
+# the playbook, so it uses no tool the playbook installs, and the extensions
+# install even when a playbook task fails. Settings go to the machine-scope
+# file of each server flavor; extensions go through the server CLI, which
+# exists once the editor has attached. A missing CLI is not fatal: install
+# the extensions from the editor later.
 vscode_dir="${PLAYBOOK_DIR}/roles/base/files/vscode"
 for server in .vscode-server .cursor-server; do
   install -D -m 0644 "${vscode_dir}/settings.jsonc" "${HOME}/${server}/data/Machine/settings.json"
@@ -33,9 +32,12 @@ done
 
 cli="$(command -v code || command -v cursor || find "${HOME}/.vscode-server" "${HOME}/.cursor-server" -path '*/bin/remote-cli/*' \( -name code -o -name cursor \) -print -quit 2>/dev/null || true)"
 if [ -n "${cli}" ]; then
-  jq -r '.[]' "${vscode_dir}/extensions.json" | while read -r extension; do
+  grep -oE '[^"]+\.[^"]+' "${vscode_dir}/extensions.json" | while read -r extension; do
     "${cli}" --install-extension "${extension}" || echo "warning: ${extension} not installed" >&2
   done
 else
   echo "warning: no editor CLI found, skipping extension install" >&2
 fi
+
+cd "${PLAYBOOK_DIR}"
+ansible-playbook -i inventory ansible.yml --skip-tags host
