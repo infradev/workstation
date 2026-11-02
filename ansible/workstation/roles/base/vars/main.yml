@@ -255,6 +255,10 @@ vscode:
         "trivy"
       ],
 
+      // mise extension (hverlin.mise-vscode)
+      // Use mise from PATH. Do not rewrite mise.binPath on startup.
+      "mise.autoDetectMiseBinPath": false,
+
       // Terraform settings
       "[terraform]": {
         "editor.defaultFormatter": "hashicorp.terraform",
