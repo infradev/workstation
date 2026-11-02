@@ -134,17 +134,22 @@ vscode:
       "git.confirmSync": false,
 
       // Git repository detection
-      // Open git only when a workspace folder is itself a repository.
-      // Do not scan nested folders. Skip every folder named .devcontainer.
-      "git.autoRepositoryDetection": false,
+      // Scan every workspace folder and all folders nested in it (in the Dev
+      // Container that is /workspaces/project). Never open parent repositories.
+      // Skip folders that hold dependencies, caches, credentials, or tool clones.
+      "git.autoRepositoryDetection": true,
       "git.openRepositoryInParentFolders": "never",
-      "git.repositoryScanMaxDepth": 0,
+      "git.repositoryScanMaxDepth": -1,
       "git.repositoryScanIgnoredFolders": [
         "node_modules",
-        ".devcontainer"
+        ".creds",
+        ".devcontainer",
+        ".terraform"
       ],
+      // Also scan each workspace folder itself.
+      "git.scanRepositories": ["."],
 
-      // Detection modes (uncomment one; false is active above)
+      // Detection modes (uncomment one; true is active above)
       // true: workspace folders, nested folders, and parents of open files
       // "subFolders": nested folders of workspace folders
       // "openEditors": parent folders of open files
@@ -158,15 +163,15 @@ vscode:
       // "git.openRepositoryInParentFolders": "always",
       // "git.openRepositoryInParentFolders": "prompt",
 
-      // Nested scan depth (0 is active above)
+      // Nested scan depth (-1 is active above)
       // 1: one level of child folders
       // -1: unlimited depth
       // "git.repositoryScanMaxDepth": 1,
       // "git.repositoryScanMaxDepth": -1,
 
-      // Extra scan paths. Relative to a workspace folder. Absolute paths are ignored.
+      // Scan paths (["."] is active above). Relative to a workspace folder.
       // Used only when autoRepositoryDetection is true or "subFolders".
-      // "git.scanRepositories": ["projects/example"],
+      // "git.scanRepositories": [".", "projects/example"],
 
       // Repositories to ignore (relative or absolute paths)
       // "git.ignoredRepositories": [],

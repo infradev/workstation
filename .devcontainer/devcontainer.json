@@ -98,15 +98,20 @@
         "git.confirmSync": false,
 
         // Git repository detection
-        // Open git only when a workspace folder is itself a repository.
-        // Do not scan nested folders. Skip every folder named .devcontainer.
-        "git.autoRepositoryDetection": false,
+        // Scan every workspace folder and all folders nested in it (in the Dev
+        // Container that is /workspaces/project). Never open parent repositories.
+        // Skip folders that hold dependencies, caches, credentials, or tool clones.
+        "git.autoRepositoryDetection": true,
         "git.openRepositoryInParentFolders": "never",
-        "git.repositoryScanMaxDepth": 0,
+        "git.repositoryScanMaxDepth": -1,
         "git.repositoryScanIgnoredFolders": [
           "node_modules",
-          ".devcontainer"
+          ".creds",
+          ".devcontainer",
+          ".terraform"
         ],
+        // Also scan each workspace folder itself.
+        "git.scanRepositories": ["."],
 
         // Source Control view
         // Tree is folders for files inside a repo. Path sorts those files and the repo list.
