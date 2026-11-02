@@ -92,14 +92,14 @@ Role vars are the lists. The playbook and `tests/verify_provision.sh` read them,
 
 | Concern | File |
 | --- | --- |
-| Home directories, shell templates, git repos to clone, editor settings, Claude marketplaces and plugins, Krew plugins | `ansible/workstation/roles/base/vars/main.yml` |
+| Home directories, shell templates, git repos to clone, shared editor extensions and settings (`roles/base/files/vscode/`), Claude marketplaces and plugins, Krew plugins | `ansible/workstation/roles/base/vars/main.yml` |
 | Ubuntu packages, `.deb` downloads, GitHub release binaries, pipx packages, tenv installs, `tool_versions` | `ansible/workstation/roles/debian/vars/main.yml` |
 | Apt repositories for one architecture and Ubuntu major version | `ansible/workstation/roles/debian/vars/<arch>-<major>.yml` |
 | Homebrew formulae, casks, and macOS-only editor extensions | `ansible/workstation/roles/macos/vars/main.yml` |
 
 On Ubuntu the Debian role installs the cloud CLIs (AWS, Azure, gcloud, GitHub, GitLab, Session Manager), Kubernetes tools (kubectl, Helm, helmfile, kind, k9s, Krew, kubectx, stern, Argo CD, aws-iam-authenticator), Terraform tools (tenv with pinned Terraform, Terragrunt, and Terramate; tflint plus the AWS, Azure, and GCP rulesets; terraform-docs, infracost, checkov, tfsec, terrascan, sops), and the shell utilities (direnv, nvm, uv, yq, hadolint, trivy, jq). tenv comes from the tofuutils Cloudsmith apt repo at the version in `tool_versions.tenv`. Finalize installs pre-commit with `uv` on macOS and Ubuntu, then runs `pre-commit install` when this repository still has a `.git` directory.
 
-On macOS the Homebrew lists cover the same CLI surface, plus casks for Docker Desktop, Cursor, Claude, gcloud, and the desktop apps in `homebrew_cask`. Cursor extensions are `vscode.extensions.common` plus `client_extensions` (Remote SSH and Dev Containers). The Debian host does not run `cursor --install-extension`; the Dev Container installs its extension set from `customizations.vscode` in `.devcontainer/devcontainer.json`.
+On macOS the Homebrew lists cover the same CLI surface, plus casks for Docker Desktop, Cursor, Claude, gcloud, and the desktop apps in `homebrew_cask`. Cursor extensions are `vscode.extensions.common` plus `client_extensions` (Remote SSH and Dev Containers). The Debian host does not run `cursor --install-extension`; `post-create` installs the same `extensions.json` list in the Dev Container through the editor server CLI and copies `settings.jsonc` to the server's machine settings.
 
 `host_packages` (OpenSSH, certbot, Docker CE and its plugins) install on an Ubuntu machine. The Dev Container skips that tag.
 
@@ -245,7 +245,7 @@ Renovate opens pull requests on Saturday. `renovate.json` covers GitHub Actions,
 | Ubuntu package or pinned binary | `roles/debian/vars/main.yml` (`packages`, `remote_executables`, `remote_packages`, `tool_versions`) |
 | Apt repository or a new Ubuntu release | a new or existing `roles/debian/vars/<arch>-<major>.yml` |
 | macOS formula, cask, or client extension | `roles/macos/vars/main.yml` |
-| Shared editor extension or setting | `roles/base/vars/main.yml` (`vscode`) and `.devcontainer/devcontainer.json` (`customizations.vscode`) |
+| Shared editor extension or setting | `roles/base/files/vscode/extensions.json` (sorted, unique) and `settings.jsonc`. Ansible and the Dev Container both read them |
 | Claude marketplace or plugin | `roles/base/vars/main.yml` (`ai.marketplaces`, `ai.plugins`) |
 | Manual-install skill | `roles/base/vars/main.yml` (`ai.manual_skills`) |
 | Krew plugin | `roles/base/vars/main.yml` (`krew_plugins`) |
