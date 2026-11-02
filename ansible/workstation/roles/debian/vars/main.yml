@@ -68,6 +68,7 @@ gnu_arch: "{{ 'x86_64' if ansible_facts['architecture'] == 'x86_64' else 'arm64'
 trivy_arch: "{{ '64bit' if ansible_facts['architecture'] == 'x86_64' else 'ARM64' }}"
 rtk_target: "{{ 'x86_64-unknown-linux-musl' if ansible_facts['architecture'] == 'x86_64' else 'aarch64-unknown-linux-gnu' }}"
 uv_target: "{{ 'x86_64-unknown-linux-gnu' if ansible_facts['architecture'] == 'x86_64' else 'aarch64-unknown-linux-gnu' }}"
+mise_arch: "{{ 'x64' if ansible_facts['architecture'] == 'x86_64' else 'arm64' }}"
 
 remote_packages:
   - "https://gitlab.com/gitlab-org/cli/-/releases/v{{ tool_versions.glab }}/downloads/glab_{{ tool_versions.glab }}_linux_{{ deb_arch }}.deb"
@@ -95,6 +96,9 @@ remote_executables:
     url: "https://github.com/ahmetb/kubectx/releases/download/v{{ tool_versions.kubectx }}/kubectx_v{{ tool_versions.kubectx }}_linux_{{ gnu_arch }}.tar.gz"
   - name: kubens
     url: "https://github.com/ahmetb/kubectx/releases/download/v{{ tool_versions.kubectx }}/kubens_v{{ tool_versions.kubectx }}_linux_{{ gnu_arch }}.tar.gz"
+  - name: mise
+    url: "https://github.com/jdx/mise/releases/download/v{{ tool_versions.mise }}/mise-v{{ tool_versions.mise }}-linux-{{ mise_arch }}.tar.gz"
+    archive_src: "mise/bin/mise"
   - name: rtk
     url: "https://github.com/rtk-ai/rtk/releases/download/v{{ tool_versions.rtk }}/rtk-{{ rtk_target }}.tar.gz"
   - name: sops
@@ -193,6 +197,8 @@ tool_versions:
   krew: "0.5.0"
   # renovate: datasource=github-releases depName=ahmetb/kubectx extractVersion=^v(?<version>.+)$
   kubectx: "0.11.0"
+  # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
+  mise: "2026.10.25"
   # renovate: datasource=github-releases depName=nvm-sh/nvm extractVersion=^v(?<version>.+)$
   nvm: "0.40.8"
   # renovate: datasource=github-releases depName=rtk-ai/rtk extractVersion=^v(?<version>.+)$

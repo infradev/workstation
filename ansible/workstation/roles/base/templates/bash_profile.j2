@@ -57,6 +57,9 @@ export TENV_ROOT="$HOME/.local/share/tenv"
 export TENV_AUTO_INSTALL=true
 export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 
+# mise (per-project tool versions). Activate before direnv so .envrc sees mise PATH.
+command -v mise >/dev/null 2>&1 && eval "$(mise activate bash)"
+
 # direnv (per-directory .envrc loading; global config at ~/.config/direnv/direnvrc)
 command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
 

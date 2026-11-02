@@ -26,6 +26,7 @@ homebrew:
   - kubectl
   - lens
   - libpq
+  - mise
   - mysql-client
   - nmap
   - node
