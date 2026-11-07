@@ -2,6 +2,8 @@ directories:
   - .aws
   - .claude
   - .claude/skills
+  - path: .claude-profiles
+    mode: "0700"
   - .config/direnv
   # Cursor user rules apply on the Mac client only.
   - path: .cursor/rules
@@ -258,6 +260,15 @@ vscode:
       // mise extension (hverlin.mise-vscode)
       // Use mise from PATH. Do not rewrite mise.binPath on startup.
       "mise.autoDetectMiseBinPath": false,
+
+      // Claude Code config dir per workspace, outside the repo so a cloned
+      // repo cannot supply user-level settings or hooks.
+      "terminal.integrated.env.osx": {
+        "CLAUDE_CONFIG_DIR": "${env:HOME}/.claude-profiles/${workspaceFolderBasename}"
+      },
+      "terminal.integrated.env.linux": {
+        "CLAUDE_CONFIG_DIR": "${env:HOME}/.claude-profiles/${workspaceFolderBasename}"
+      },
 
       // Terraform settings
       "[terraform]": {

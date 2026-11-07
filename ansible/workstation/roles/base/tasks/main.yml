@@ -15,6 +15,7 @@
     path: "{{ local_home }}/{{ item.path | default(item) }}"
     state: directory
     owner: "{{ user_name }}"
+    mode: "{{ item.mode | default(omit) }}"
   loop: "{{ directories }}"
   when: item is string or item.os_family is not defined or item.os_family == ansible_facts['os_family']
 
