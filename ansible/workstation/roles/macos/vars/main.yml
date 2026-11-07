@@ -58,7 +58,6 @@ homebrew_cask:
   - google-drive
   - granola
   - iterm2
-  - microsoft-teams
   - multipass
   - session-manager-plugin
   - slack
