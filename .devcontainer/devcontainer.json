@@ -96,8 +96,7 @@
         "git.autofetch": "all",
         "git.enableSmartCommit": true,
         "git.confirmSync": false,
-        "git.pullTags": true,
-        "git.replaceTagsWhenPull": true,
+        "git.pullTags": false,
 
         // Git repository detection
         // Depth 2 covers category/repo layout. Unlimited depth is slow on large trees.
