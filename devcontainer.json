@@ -98,26 +98,28 @@
         "git.confirmSync": false,
 
         // Git repository detection
-        // Scan every workspace folder and all folders nested in it (in the Dev
-        // Container that is /workspaces/project). Never open parent repositories.
-        // Skip folders that hold dependencies, caches, credentials, or tool clones.
+        // Depth 2 covers category/repo layout. Unlimited depth is slow on large trees.
         "git.autoRepositoryDetection": true,
         "git.openRepositoryInParentFolders": "never",
-        "git.repositoryScanMaxDepth": -1,
+        "git.repositoryScanMaxDepth": 2,
         "git.repositoryScanIgnoredFolders": [
           "node_modules",
           ".creds",
           ".devcontainer",
-          ".terraform"
+          ".terraform",
+          ".claude",
+          ".cursor",
+          ".apex-skills"
         ],
-        // Also scan each workspace folder itself.
-        "git.scanRepositories": ["."],
+        "git.scanRepositories": [],
 
         // Source Control view
-        // Tree is folders for files inside a repo. Path sorts those files and the repo list.
         "scm.defaultViewMode": "tree",
         "scm.defaultViewSortKey": "path",
         "scm.repositories.sortOrder": "path",
+        "scm.alwaysShowRepositories": true,
+        "scm.repositories.visible": 0,
+        "scm.repositories.selectionMode": "multiple",
 
         // Terminal settings
         "terminal.integrated.scrollback": 100000,
