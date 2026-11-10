@@ -22,6 +22,7 @@ directories:
     os_family: Debian
   - .vscode
   - projects
+  - projects/.vscode
 
 krew_plugins:
   - ctx
@@ -50,6 +51,13 @@ files:
   - path: .vimrc
   - path: home.code-workspace
     template: home.code-workspace.j2
+    mode: "0644"
+  # Folder-scoped Git scan: home depth 0 (skip ~/Library crawl), projects depth 2.
+  - path: .vscode/settings.json
+    template: vscode-home-settings.json.j2
+    mode: "0644"
+  - path: projects/.vscode/settings.json
+    template: vscode-projects-settings.json.j2
     mode: "0644"
   - path: projects/.envrc.example
     template: .envrc.j2
@@ -136,11 +144,12 @@ vscode:
       "git.confirmSync": false,
 
       // Git repository detection
-      // Scan ~/projects (workspace folder "projects") and all folders nested in it.
-      // Never open parent repositories. Skip deps/caches/creds/tool clones.
+      // Repos live at ~/projects/<category>/<repo> (depth 2 from the projects folder).
+      // Depth -1 on the home folder crawls ~/Library and never finishes; use 2.
+      // Per-folder overrides: ~/.vscode and ~/projects/.vscode.
       "git.autoRepositoryDetection": true,
       "git.openRepositoryInParentFolders": "never",
-      "git.repositoryScanMaxDepth": -1,
+      "git.repositoryScanMaxDepth": 2,
       "git.repositoryScanIgnoredFolders": [
         "node_modules",
         ".creds",
@@ -148,67 +157,20 @@ vscode:
         ".terraform",
         ".claude",
         ".cursor",
-        ".apex-skills"
+        ".apex-skills",
+        "Library",
+        "Applications",
+        ".Trash"
       ],
-      // Explicit scan root: all repos under ~/projects (relative to the home workspace folder).
-      "git.scanRepositories": ["projects"],
-
-      // Detection modes (uncomment one; true is active above)
-      // true: workspace folders, nested folders, and parents of open files
-      // "subFolders": nested folders of workspace folders
-      // "openEditors": parent folders of open files
-      // "git.autoRepositoryDetection": true,
-      // "git.autoRepositoryDetection": "subFolders",
-      // "git.autoRepositoryDetection": "openEditors",
-
-      // Parent folder repositories (never is active above)
-      // "always": open git roots above the workspace
-      // "prompt": ask first
-      // "git.openRepositoryInParentFolders": "always",
-      // "git.openRepositoryInParentFolders": "prompt",
-
-      // Nested scan depth (-1 is active above)
-      // 1: one level of child folders
-      // -1: unlimited depth
-      // "git.repositoryScanMaxDepth": 1,
-      // "git.repositoryScanMaxDepth": -1,
-
-      // Scan paths (["projects"] is active above). Relative to a workspace folder.
-      // Used only when autoRepositoryDetection is true or "subFolders".
-      // "git.scanRepositories": ["projects"],
-
-      // Repositories to ignore (relative or absolute paths)
-      // "git.ignoredRepositories": [],
-
-      // Extra folder names to skip during nested scan
-      // "git.repositoryScanIgnoredFolders": ["node_modules", ".devcontainer", ".creds"],
-
-      // Submodules and worktrees
-      // "git.detectSubmodules": true,
-      // "git.detectSubmodulesLimit": 10,
-      // "git.ignoreSubmodules": false,
-      // "git.detectWorktrees": true,
-      // "git.detectWorktreesLimit": 10,
+      "git.scanRepositories": [],
 
       // Source Control view
-      // Tree is folders for files inside a repo. Path sorts those files and the repo list.
       "scm.defaultViewMode": "tree",
       "scm.defaultViewSortKey": "path",
       "scm.repositories.sortOrder": "path",
-
-      // Source Control repository list
-      // "scm.alwaysShowRepositories": true,
-      // "scm.repositories.visible": 0,
-      // "scm.repositories.sortOrder": "discovery time",
-      // "scm.repositories.sortOrder": "name",
-      // "scm.repositories.selectionMode": "multiple",
-      // "scm.providerCountBadge": "hidden",
-      // "scm.alwaysShowActions": false,
-      // "scm.countBadge": "all",
-      // "scm.autoReveal": true,
-      // "scm.defaultViewMode": "list",
-      // "scm.defaultViewSortKey": "name",
-      // "scm.defaultViewSortKey": "status",
+      "scm.alwaysShowRepositories": true,
+      "scm.repositories.visible": 0,
+      "scm.repositories.selectionMode": "multiple",
 
       // Terminal settings
       "terminal.integrated.scrollback": 100000,
@@ -265,12 +227,12 @@ vscode:
 
       // Claude Code config dir per workspace, outside the repo so a cloned
       // repo cannot supply user-level settings or hooks.
-      "terminal.integrated.env.osx": {
-        "CLAUDE_CONFIG_DIR": "${env:HOME}/.claude-profiles/${workspaceFolderBasename}"
-      },
-      "terminal.integrated.env.linux": {
-        "CLAUDE_CONFIG_DIR": "${env:HOME}/.claude-profiles/${workspaceFolderBasename}"
-      },
+      // "terminal.integrated.env.osx": {
+      //   "CLAUDE_CONFIG_DIR": "${env:HOME}/.claude-profiles/${workspaceFolderBasename}"
+      // },
+      // "terminal.integrated.env.linux": {
+      //   "CLAUDE_CONFIG_DIR": "${env:HOME}/.claude-profiles/${workspaceFolderBasename}"
+      // },
 
       // Terraform settings
       "[terraform]": {
