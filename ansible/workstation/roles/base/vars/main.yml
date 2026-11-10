@@ -52,7 +52,7 @@ files:
   - path: home.code-workspace
     template: home.code-workspace.j2
     mode: "0644"
-  # Folder-scoped Git scan: home depth 0 (skip ~/Library crawl), projects depth 2.
+  # Folder-scoped Git: disable Git under home (plugin clones); scan projects depth 2.
   - path: .vscode/settings.json
     template: vscode-home-settings.json.j2
     mode: "0644"
@@ -144,9 +144,8 @@ vscode:
       "git.confirmSync": false,
 
       // Git repository detection
-      // Repos live at ~/projects/<category>/<repo> (depth 2 from the projects folder).
-      // Depth -1 on the home folder crawls ~/Library and never finishes; use 2.
-      // Per-folder overrides: ~/.vscode and ~/projects/.vscode.
+      // Only scan ~/projects (see projects/.vscode). Home folder has git.enabled
+      // false in ~/.vscode so plugin clones under ~/.cursor and ~/.claude stay out.
       "git.autoRepositoryDetection": true,
       "git.openRepositoryInParentFolders": "never",
       "git.repositoryScanMaxDepth": 2,
