@@ -142,6 +142,9 @@ vscode:
       "git.autofetch": "all",
       "git.enableSmartCommit": true,
       "git.confirmSync": false,
+      // Action tags like v1/v2 move on the remote; replace local tags on conflict.
+      "git.pullTags": true,
+      "git.replaceTagsWhenPull": true,
 
       // Git repository detection
       // Only scan ~/projects (see projects/.vscode). Home folder has git.enabled
