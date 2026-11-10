@@ -290,6 +290,31 @@
   loop: "{{ ai.manual_skills }}"
   ignore_errors: yes
 
+# Mac: macos role runs `cursor --install-extension` (local app).
+# Dev Container: customizations.vscode.extensions in .devcontainer/devcontainer.json.
+# SSH Linux: install into the remote server via the Cursor remote CLI once it exists
+# (created on first Remote SSH connect). client_extensions stay Mac-only.
+- name: Locate Cursor remote CLI
+  ansible.builtin.shell: |
+    set -euo pipefail
+    find "{{ local_home }}/.cursor-server/bin" -path '*/bin/remote-cli/cursor' -type f 2>/dev/null | sort | tail -n 1
+  args:
+    executable: /bin/bash
+  register: cursor_remote_cli
+  changed_when: false
+  failed_when: false
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install Cursor extensions on the remote host
+  ansible.builtin.command: "{{ cursor_remote_cli.stdout }} --install-extension {{ item }} --force"
+  loop: "{{ vscode.extensions.common }}"
+  register: cursor_ext_install
+  changed_when: "'already installed' not in (cursor_ext_install.stdout | default(''))"
+  failed_when: cursor_ext_install.rc != 0
+  when:
+    - ansible_facts['os_family'] == 'Debian'
+    - (cursor_remote_cli.stdout | default('')) | length > 0
+
 - name: Register graphify with Cursor
   ansible.builtin.command: graphify cursor install
   changed_when: true

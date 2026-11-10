@@ -28,6 +28,14 @@
   become: true
   tags: [host]
 
+# deb822_repository needs python3-debian. install_python_debian was only
+# added in ansible-core 2.20; install the package ourselves for older hosts.
+- name: Ensure python3-debian is installed
+  apt:
+    name: python3-debian
+    state: present
+  become: true
+
 - name: Add apt repositories
   ansible.builtin.deb822_repository:
     name: "{{ item.name }}"
@@ -39,7 +47,7 @@
     # Fetches the key (URL) and dearmors it into /etc/apt/keyrings/<name>.gpg
     # itself - no separate get_url + gpg --dearmor dance needed.
     signed_by: "{{ item.signed_by }}"
-    install_python_debian: true
+    install_python_debian: "{{ true if ansible_version.full is version('2.20', '>=') else omit }}"
   loop: "{{ repositories | rejectattr('name', 'equalto', 'docker') | list }}"
   become: true
 
@@ -54,7 +62,7 @@
     components: "{{ item.components | default(omit) }}"
     architectures: "{{ item.architectures | default(omit) }}"
     signed_by: "{{ item.signed_by }}"
-    install_python_debian: true
+    install_python_debian: "{{ true if ansible_version.full is version('2.20', '>=') else omit }}"
   loop: "{{ repositories | selectattr('name', 'equalto', 'docker') | list }}"
   become: true
   tags: [host]
@@ -150,16 +158,31 @@
     name: "{{ item }}"
   with_items: "{{ pip }}"
 
+# global=true needs community.general>=9.4 and pipx>=1.6. On older stacks,
+# PIPX_HOME/PIPX_BIN_DIR achieve the same system-wide /usr/local/bin install.
+- name: Check pipx version for --global support
+  ansible.builtin.command: pipx --version
+  register: pipx_version_cmd
+  changed_when: false
+  failed_when: false
+
 - name: Install pipx applications
   community.general.pipx:
     name: "{{ item }}"
     state: present
-    global: true
+    global: >-
+      {{ true
+        if (lookup('community.general.collection_version', 'community.general') is version('9.4.0', '>=')
+          and (pipx_version_cmd.stdout | default('0')) is version('1.6.0', '>='))
+        else omit }}
   loop: "{{ pipx_packages }}"
   become: true
+  environment:
+    PIPX_HOME: /opt/pipx
+    PIPX_BIN_DIR: /usr/local/bin
 
-# Cursor extensions are installed on the Mac by the macos role. This host
-# does not run cursor --install-extension.
+# Cursor extensions for this host are installed in base/finalize.yml once
+# ~/.cursor-server exists (after the first Remote SSH connection).
 
 - name: Remove useless packages from the cache
   apt:

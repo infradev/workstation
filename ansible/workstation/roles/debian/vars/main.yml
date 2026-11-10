@@ -36,6 +36,7 @@ packages:
   - postgresql-client
   - pv
   - python3
+  - python3-debian
   - python3-pip
   - python3-venv
   - software-properties-common

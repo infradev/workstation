@@ -136,9 +136,8 @@ vscode:
       "git.confirmSync": false,
 
       // Git repository detection
-      // Scan every workspace folder and all folders nested in it (in the Dev
-      // Container that is /workspaces/project). Never open parent repositories.
-      // Skip folders that hold dependencies, caches, credentials, or tool clones.
+      // Scan ~/projects (workspace folder "projects") and all folders nested in it.
+      // Never open parent repositories. Skip deps/caches/creds/tool clones.
       "git.autoRepositoryDetection": true,
       "git.openRepositoryInParentFolders": "never",
       "git.repositoryScanMaxDepth": -1,
@@ -146,10 +145,13 @@ vscode:
         "node_modules",
         ".creds",
         ".devcontainer",
-        ".terraform"
+        ".terraform",
+        ".claude",
+        ".cursor",
+        ".apex-skills"
       ],
-      // Also scan each workspace folder itself.
-      "git.scanRepositories": ["."],
+      // Explicit scan root: all repos under ~/projects (relative to the home workspace folder).
+      "git.scanRepositories": ["projects"],
 
       // Detection modes (uncomment one; true is active above)
       // true: workspace folders, nested folders, and parents of open files
@@ -171,9 +173,9 @@ vscode:
       // "git.repositoryScanMaxDepth": 1,
       // "git.repositoryScanMaxDepth": -1,
 
-      // Scan paths (["."] is active above). Relative to a workspace folder.
+      // Scan paths (["projects"] is active above). Relative to a workspace folder.
       // Used only when autoRepositoryDetection is true or "subFolders".
-      // "git.scanRepositories": [".", "projects/example"],
+      // "git.scanRepositories": ["projects"],
 
       // Repositories to ignore (relative or absolute paths)
       // "git.ignoredRepositories": [],
