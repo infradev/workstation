@@ -52,6 +52,19 @@ Scope: chat replies only. Persisted artifacts (commits, PRs, issues, docs, memor
 - ML-training work: `andrej-karpathy-skills`.
 - Kubernetes manifests/Helm/Kustomize/policies: `kubernetes-skill` for security/reliability-sensitive work (insecure defaults, resource starvation, network exposure, privilege sprawl, fragile rollouts, API drift). `k8s-yaml-generator`/`k8s-yaml-validator` for quick, low-stakes scaffolding/linting.
 
+## Elephant-Goldfish Model (`egm@egm`)
+
+[Elephant-Goldfish Model](https://github.com/google/elephant-goldfish-model) drafts with project context (elephant) and reviews with a fresh agent that did not see the earlier chat (goldfish). You approve the design before implementation. It does not replace scanners (`trivy`, `tfsec`, `checkov`, `tflint`, `terrascan`).
+
+Claude Code commands use the `/egm:` prefix. Cursor support is experimental: pick the skill from the slash menu, or read `skills/<name>/SKILL.md`. A goldfish review needs a fresh subagent. If the host cannot start one, stop. Do not simulate the review in the parent chat.
+
+- New design or trade-off (IAM boundary, network policy, SLO, runbook, incident process, module split): `egm-brainstorm`, then `egm-draft`, then `egm-review`. Save the approved spec under `docs/designs/`.
+- Existing design, runbook, or PR plan: `egm-review <path>`.
+- Checked-in docs vs current Terraform, Helm, or manifests: `egm-drift-report <dir>`. Update the doc or the code. You choose which.
+- Review findings: `egm-resolve`.
+- Inherited service with no spec: `egm-bootstrap`, then review the generated docs.
+- A named standard (change policy, a benchmark): `egm-review-loop`. This is not a Vanta control and not a sign-off.
+
 ## DevOps skills (`devops-skills@akin-ozer`)
 
 Most domains have a `<domain>-generator` (create) and a `<domain>-validator` (lint/audit/fix). Domains: `ansible`, `azure-pipelines`, `bash-script`, `dockerfile`, `fluentbit`, `github-actions`, `gitlab-ci`, `helm`, `jenkinsfile`, `k8s-yaml`, `makefile`, `promql`, `terraform`, `terragrunt`.

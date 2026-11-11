@@ -200,6 +200,7 @@ vscode:
         "azurerm",
         "checkov",
         "devcontainer",
+        "egm",
         "gcloud",
         "hadolint",
         "helmfile",
@@ -281,6 +282,9 @@ ai:
     - dietrichgebert/ponytail
     # Off-target for this role (ML-training), requested anyway.
     - forrestchang/andrej-karpathy-skills
+    # Elephant-Goldfish Model. Marketplace key is egm, not the GitHub repo name.
+    # Claude install id is egm@egm. The Cursor adapter is experimental.
+    - google/elephant-goldfish-model
     - jfr992/terragrunt-skill
     # Already in active use (caveman mode).
     - JuliusBrussee/caveman
@@ -303,6 +307,7 @@ ai:
     - databases-on-aws@claude-plugins-official
     - devops-skills@akin-ozer
     - ecc@ecc
+    - egm@egm
     - github@claude-plugins-official
     - humanizer@humanizer
     - i-have-adhd@i-have-adhd
