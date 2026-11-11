@@ -1,4 +1,10 @@
 repositories:
+  - name: aws-vpn-client
+    uris: "https://d20adtppz83p9s.cloudfront.net/GTK/latest/debian-repo"
+    suites: ubuntu
+    components: main
+    architectures: amd64
+    signed_by: "https://d20adtppz83p9s.cloudfront.net/GTK/latest/debian-repo/awsvpnclient_public_key.asc"
   - name: azure-cli
     uris: "https://packages.microsoft.com/repos/azure-cli/"
     suites: resolute

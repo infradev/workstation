@@ -47,15 +47,23 @@ while IFS=$'\t' read -r name url; do
   done
 done < <(yaml "${DEBIAN_VARS}" '.remote_executables[] | [.name, .url] | @tsv')
 
-repo_names=""
+x86_repo_names=""
+arm_repo_names=""
 for arch_file in "${debian_dir}"/*-*.yml; do
+  base="$(basename "${arch_file}")"
   names="$(yaml "${arch_file}" '.repositories[].name')"
   # shellcheck disable=SC2086
-  assert_sorted "$(basename "${arch_file}") repositories" ${names}
-  if [[ -z "${repo_names}" ]]; then
-    repo_names="${names}"
-  elif [[ "${names}" != "${repo_names}" ]]; then
-    fail "$(basename "${arch_file}") repository names differ"
+  assert_sorted "${base} repositories" ${names}
+  if [[ "${base}" == aarch64-* ]]; then
+    if [[ -z "${arm_repo_names}" ]]; then
+      arm_repo_names="${names}"
+    elif [[ "${names}" != "${arm_repo_names}" ]]; then
+      fail "${base} repository names differ"
+    fi
+  elif [[ -z "${x86_repo_names}" ]]; then
+    x86_repo_names="${names}"
+  elif [[ "${names}" != "${x86_repo_names}" ]]; then
+    fail "${base} repository names differ"
   fi
 done
 

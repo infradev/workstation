@@ -48,12 +48,15 @@
     # itself - no separate get_url + gpg --dearmor dance needed.
     signed_by: "{{ item.signed_by }}"
     install_python_debian: "{{ true if ansible_version.full is version('2.20', '>=') else omit }}"
-  loop: "{{ repositories | rejectattr('name', 'equalto', 'docker') | list }}"
+  loop: "{{ repositories | rejectattr('name', 'equalto', 'docker') | rejectattr('name', 'equalto', 'aws-vpn-client') | list }}"
   become: true
 
 # docker-ce is a host package. Docker-in-Docker already ships this URI with
 # a different Signed-By, and apt refuses two values for the same source.
-- name: Add the Docker apt repository
+# awsvpnclient is the AWS Client VPN desktop client. Same host tag: the
+# devcontainer skips this task. The package is AMD64 only, so it is absent
+# from the aarch64 repository lists.
+- name: Add host apt repositories
   ansible.builtin.deb822_repository:
     name: "{{ item.name }}"
     types: deb
@@ -63,7 +66,7 @@
     architectures: "{{ item.architectures | default(omit) }}"
     signed_by: "{{ item.signed_by }}"
     install_python_debian: "{{ true if ansible_version.full is version('2.20', '>=') else omit }}"
-  loop: "{{ repositories | selectattr('name', 'equalto', 'docker') | list }}"
+  loop: "{{ (repositories | selectattr('name', 'equalto', 'docker') | list) + (repositories | selectattr('name', 'equalto', 'aws-vpn-client') | list) }}"
   become: true
   tags: [host]
 
@@ -100,6 +103,14 @@
   become: true
   tags: [host]
   when: host_packages | length > 0
+
+- name: Install the AWS Client VPN client
+  ansible.builtin.apt:
+    name: awsvpnclient
+    state: present
+  become: true
+  tags: [host]
+  when: ansible_facts['architecture'] == 'x86_64'
 
 - name: Install remote packages
   apt:
